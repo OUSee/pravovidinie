@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watchEffect, inject, onMounted } from 'vue'
+import { ref, watchEffect, inject } from 'vue'
 // import { CallStatus } from '../../types'
 import axios from "axios";
 const refVideo = inject<any>('refVideo')
