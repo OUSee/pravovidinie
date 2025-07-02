@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watchEffect, inject } from 'vue'
 import { CallStatus } from '../../types'
-import axios from "axios";
+// import axios from "axios";
 const refVideo = inject<any>('refVideo')
 const refUserVideo = inject<any>('refUserVideo')
 const webSocketRef = ref()
@@ -412,15 +412,15 @@ watchEffect(() => {
   }
 })
 
-const createVideoCallRoom = (profile: string) => {
-  const token = ''
-  const BASE_API_URL = `https://${import.meta.env.VITE_CALL_URL}`;
-  return axios.post(
-    `${BASE_API_URL}/create`,
-    { profile },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-};
+// const createVideoCallRoom = (profile: string) => {
+//   const token = ''
+//   const BASE_API_URL = `https://${import.meta.env.VITE_CALL_URL}`;
+//   return axios.post(
+//     `${BASE_API_URL}/create`,
+//     { profile },
+//     { headers: { Authorization: `Bearer ${token}` } }
+//   );
+// };
 
 // const createRoom = () => {
 //   createVideoCallRoom('{{callto}}')
