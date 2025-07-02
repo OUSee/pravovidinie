@@ -114,15 +114,15 @@ const handleOffer = async (offer: any) => {
   );
 };
 
-const closeCamera = async () => {
-  if (userStream.value) {
-    userStream.value.getTracks().forEach((track: any) => {
-      if (track.readyState === "live") {
-        track.stop();
-      }
-    });
-  }
-};
+// const closeCamera = async () => {
+//   if (userStream.value) {
+//     userStream.value.getTracks().forEach((track: any) => {
+//       if (track.readyState === "live") {
+//         track.stop();
+//       }
+//     });
+//   }
+// };
 
 const callUser = () => {
   // console.log("Calling Other User");
@@ -171,13 +171,13 @@ watchEffect(() => {
   }
 })
 
-const disableCamera = async () => {
-  if (userStream.value) {
-    await userStream.value.getVideoTracks().forEach((track: any) => {
-      track.enabled = !videoEnabled.value
-    });
-  }
-}
+// const disableCamera = async () => {
+//   if (userStream.value) {
+//     await userStream.value.getVideoTracks().forEach((track: any) => {
+//       track.enabled = !videoEnabled.value
+//     });
+//   }
+// }
 
 const stopSound = () => {
   if (audioPlayer.value) {
@@ -422,20 +422,20 @@ const createVideoCallRoom = (profile: string) => {
   );
 };
 
-const createRoom = () => {
-  createVideoCallRoom('{{callto}}')
-    .then((response: any) => {
-      if (!response.data.status) {
-        console.warn('buisy')
-        return;
-      }
-      if (response.data.room_id) {
-        roomID.value = response.data.room_id
-      }
-    })
-    .catch((error: any) => {
-      console.log('error: ', error);
-    });
-};
+// const createRoom = () => {
+//   createVideoCallRoom('{{callto}}')
+//     .then((response: any) => {
+//       if (!response.data.status) {
+//         console.warn('buisy')
+//         return;
+//       }
+//       if (response.data.room_id) {
+//         roomID.value = response.data.room_id
+//       }
+//     })
+//     .catch((error: any) => {
+//       console.log('error: ', error);
+//     });
+// };
 
 </script>
