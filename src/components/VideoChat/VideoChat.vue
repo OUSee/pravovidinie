@@ -7,9 +7,11 @@ import { ref, provide } from 'vue'
 
 const refVideo = ref<HTMLTextAreaElement | null>(null)
 const refUserVideo = ref<HTMLTextAreaElement | null>(null)
+const enableCall = ref<boolean>(false)
 
 provide('refVideo', refVideo)
 provide('refUserVideo', refUserVideo)
+provide('enableCall', enableCall)
 
 </script>
 <template>

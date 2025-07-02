@@ -4,6 +4,7 @@ import { ref, watchEffect, inject, onMounted } from 'vue'
 import axios from "axios";
 const refVideo = inject<any>('refVideo')
 const refUserVideo = inject<any>('refUserVideo')
+const enableCall = inject<any>('enableCall')
 const webSocketRef = ref()
 const yourVideo = ref()
 const partnerVideo = ref()
@@ -26,7 +27,12 @@ const callCloseError = ref();
 const startCall = ref();
 const startRef = ref();
 const guestVideoEnabled = ref();
-const modalStatus = ref()
+const modalStatus = ref();
+const generateRandomId = (): string => {
+  return Math.random().toString(36).substring(2, 10);
+}
+
+const token = generateRandomId()
 
 
 const handleNegotiationNeeded = () => {
@@ -260,7 +266,6 @@ const getMedia = async () => {
   };
 
   openCamera().then((stream) => {
-    const token = localStorage.getItem("user");
     if (webSocketRef.value !== undefined) {
       // console.log(webSocketRef.current);
       return;
@@ -351,7 +356,7 @@ const getMedia = async () => {
 };
 
 watchEffect(() => {
-  if (modalStatus.value === true) {
+  if (modalStatus.value === true || enableCall.value === true) {
     callEnd.value = false;
     notAnswered.value = false;
     stopwatchSecondOffset.value = new Date();
@@ -412,13 +417,9 @@ watchEffect(() => {
   }
 })
 
-const generateRandomId = (): string => {
-  return Math.random().toString(36).substring(2, 10);
-}
+
 
 const createVideoCallRoom = () => {
-  const token = generateRandomId()
-
   const BASE_API_URL = `http://localhost:8000`;
   return axios.post(
     `${BASE_API_URL}/create`,
@@ -437,6 +438,10 @@ const createRoom = () => {
       if (response.data.room_id) {
         roomID.value = response.data.room_id
         callStatus.value = response.data.status
+        localStorage.setItem('room', roomID.value)
+        if (enableCall.value === true) {
+          getMedia()
+        }
       }
     })
     .catch((error: any) => {
@@ -444,8 +449,14 @@ const createRoom = () => {
     });
 };
 
-onMounted(() => {
-  createRoom()
+watchEffect(() => {
+  const room = localStorage.getItem('room')
+  if (enableCall.value === true && !room) {
+    createRoom()
+  }
+  else {
+    roomID.value = room
+    callStatus.value = 'connected'
+  }
 })
-
 </script>

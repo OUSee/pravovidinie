@@ -3,13 +3,15 @@ import './VideoChat.scss'
 import EndVideoChatIcon from '../Icons/EndVideoChatIcon.vue'
 import MIcrophoneIcon from '../Icons/MIcrophoneIcon.vue'
 import CameraIcon from '../Icons/CameraIcon.vue'
-import { ref } from 'vue'
+import { inject, ref } from 'vue'
 
 const time = '85 минут'
 const pricing = 100
 const current_time = new Date();
 const mute = ref<Boolean>(false)
 const camera = ref<Boolean>(false)
+const enableCall = inject<any>('enableCall')
+console.log(enableCall)
 
 const hours = current_time.getHours().toString().padStart(2, '0');
 const minutes = current_time.getMinutes().toString().padStart(2, '0');
@@ -20,6 +22,13 @@ const handleToggleVideo = (): void => {
 
 const handleToggleAudio = (): void => {
     mute.value = !mute.value
+}
+
+const handleStartCall = (): void => {
+    console.log('click')
+    if (enableCall.value === false) {
+        enableCall.value = true;
+    }
 }
 
 </script>
@@ -43,7 +52,7 @@ const handleToggleAudio = (): void => {
             </p>
         </div>
         <div class="buttons">
-            <button title="end videocall">
+            <button title="end videocall" @click="handleStartCall">
                 <EndVideoChatIcon color="#b92828" />
             </button>
         </div>
