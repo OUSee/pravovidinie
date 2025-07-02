@@ -57,8 +57,8 @@ watchEffect(() => {
 
 <template>
     <div class="videochat-window">
-        <video ref="refUserVideo" class="main-window" src=""></video>
-        <video ref="refVideo" class="mirror" src=""></video>
+        <video ref="partnerVideo" class="main-window" src=""></video>
+        <video ref="yourVideo" class="mirror" src=""></video>
         <VideoChatBar :checked="true" />
     </div>
 </template>
