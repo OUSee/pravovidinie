@@ -271,7 +271,7 @@ const getMedia = async () => {
       return;
     }
     webSocketRef.value = new WebSocket(
-      `wss://localhost:8000/join?roomID=${roomID.value}&token=${token}`
+      `ws://localhost:8000/join?roomID=${roomID.value}&token=${token}`
     );
     webSocketRef.value.onopen = () => {
       if (stream === null) {
