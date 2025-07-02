@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, watchEffect, inject } from 'vue'
-import { CallStatus } from '../../types'
-// import axios from "axios";
+import { ref, watchEffect, inject, onMounted } from 'vue'
+// import { CallStatus } from '../../types'
+import axios from "axios";
 const refVideo = inject<any>('refVideo')
 const refUserVideo = inject<any>('refUserVideo')
 const webSocketRef = ref()
@@ -13,7 +13,7 @@ const peerRef = ref();
 const pingInterval = ref();
 const startVideochat = ref()
 const videoEnabled = ref()
-const callStatus = ref(CallStatus.canceled)
+const callStatus = ref('')
 const notAnswered = ref<Boolean>(false)
 const callError = ref<string>('')
 const stopwatchSecondOffset = ref<Date>(new Date)
@@ -163,7 +163,7 @@ const onClickClose = async (closeModal = false, reason: string = '') => {
 }
 
 watchEffect(() => {
-  if (callStatus.value === CallStatus.canceled) {
+  if (callStatus.value === 'canceled') {
     notAnswered.value = true;
     callError.value = 'noAnswer';
     stopwatchSecondOffset.value = new Date;
@@ -266,7 +266,7 @@ const getMedia = async () => {
       return;
     }
     webSocketRef.value = new WebSocket(
-      `wss://${import.meta.env.VITE_CALL_URL}/join?roomID=${roomID}&token=${token}`
+      `wss://localhost:8000/join?roomID=${roomID}&token=${token}`
     );
     webSocketRef.value.onopen = () => {
       if (stream === null) {
@@ -412,30 +412,40 @@ watchEffect(() => {
   }
 })
 
-// const createVideoCallRoom = (profile: string) => {
-//   const token = ''
-//   const BASE_API_URL = `https://${import.meta.env.VITE_CALL_URL}`;
-//   return axios.post(
-//     `${BASE_API_URL}/create`,
-//     { profile },
-//     { headers: { Authorization: `Bearer ${token}` } }
-//   );
-// };
+const generateRandomId = (): string => {
+  return Math.random().toString(36).substring(2, 10);
+}
 
-// const createRoom = () => {
-//   createVideoCallRoom('{{callto}}')
-//     .then((response: any) => {
-//       if (!response.data.status) {
-//         console.warn('buisy')
-//         return;
-//       }
-//       if (response.data.room_id) {
-//         roomID.value = response.data.room_id
-//       }
-//     })
-//     .catch((error: any) => {
-//       console.log('error: ', error);
-//     });
-// };
+const createVideoCallRoom = () => {
+  const token = generateRandomId()
+
+  const BASE_API_URL = `http://localhost:8000`;
+  return axios.post(
+    `${BASE_API_URL}/create`,
+    { profile: 'test' },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+};
+
+const createRoom = () => {
+  createVideoCallRoom()
+    .then((response: any) => {
+      if (!response.data.status) {
+        console.warn('buisy')
+        return;
+      }
+      if (response.data.room_id) {
+        roomID.value = response.data.room_id
+        callStatus.value = response.data.status
+      }
+    })
+    .catch((error: any) => {
+      console.log('error: ', error);
+    });
+};
+
+onMounted(() => {
+  createRoom()
+})
 
 </script>
