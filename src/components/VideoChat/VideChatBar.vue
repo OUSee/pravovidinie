@@ -16,18 +16,30 @@ console.log(enableCall)
 const hours = current_time.getHours().toString().padStart(2, '0');
 const minutes = current_time.getMinutes().toString().padStart(2, '0');
 
+const toggleAudio = inject<() => void>('toggleAudio')
+const toggleVideo = inject<() => void>('toggleVideo')
+const startCall = inject<() => void>('startCall')
+const endCall = inject<() => void>('endCall')
+
 const handleToggleVideo = (): void => {
     camera.value = !camera.value
+    toggleVideo?.()
 }
 
 const handleToggleAudio = (): void => {
     mute.value = !mute.value
+    toggleAudio?.()
 }
 
 const handleStartCall = (): void => {
     console.log('click')
     if (enableCall.value === false) {
         enableCall.value = true;
+        startCall?.();
+    }
+    else {
+        enableCall.value = false;
+        endCall?.()
     }
 }
 

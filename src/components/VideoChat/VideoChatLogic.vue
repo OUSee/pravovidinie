@@ -2,9 +2,10 @@
 import { ref, watchEffect, inject } from 'vue'
 // import { CallStatus } from '../../types'
 import axios from "axios";
-const refVideo = inject<any>('refVideo')
-const refUserVideo = inject<any>('refUserVideo')
-const enableCall = inject<any>('enableCall')
+import callSound from '../../assets/skype-incoming.mp3'
+const refVideo = inject<any>('refVideo') // refers to a video tag element 
+const refUserVideo = inject<any>('refUserVideo') // refers to a video tag element 
+const enableCall = inject<any>('enableCall') // hardcoded for mvp flag to start videochat
 const webSocketRef = ref()
 const yourVideo = ref()
 const partnerVideo = ref()
@@ -16,18 +17,19 @@ const startVideochat = ref()
 const videoEnabled = ref()
 const callStatus = ref('')
 const notAnswered = ref<Boolean>(false)
-const callError = ref<string>('')
+const callError = ref<string | null>(null)
 const stopwatchSecondOffset = ref<Date>(new Date)
 const guestBarEnabled = ref(false)
 const callEnd = ref(false)
 const isPlaying = ref(false)
 const audioPlayer = ref<HTMLAudioElement | null>(null)
-const callingSound = ref<any>(null)
+const callingSound = ref<any>(callSound)
 const callCloseError = ref();
 const startCall = ref();
 const startRef = ref();
 const guestVideoEnabled = ref();
 const modalStatus = ref();
+
 const generateRandomId = (): string => {
   return Math.random().toString(36).substring(2, 10);
 }
@@ -177,6 +179,12 @@ watchEffect(() => {
   }
 })
 
+watchEffect(() => {
+  if (callError.value !== null) {
+    console.log('ERR: ', callError.value)
+  }
+})
+
 // const disableCamera = async () => {
 //   if (userStream.value) {
 //     await userStream.value.getVideoTracks().forEach((track: any) => {
@@ -200,6 +208,7 @@ const playSound = () => {
     audioPlayer.value.play();
   } else {
     const audio = new Audio(callingSound.value)
+    console.log('audio', audio)
     audio.loop = true;
     audio.play();
     audioPlayer.value = audio;
@@ -207,13 +216,19 @@ const playSound = () => {
 }
 
 watchEffect(() => {
-  if (guestBarEnabled.value === true && notAnswered.value !== true) {
-    playSound();
+  if (enableCall.value === true && callError.value === null) {
+    playSound()
   }
 })
 
+// watchEffect(() => {
+//   if (guestBarEnabled.value === true && notAnswered.value !== true) {
+//     playSound();
+//   }
+// })
+
 watchEffect(() => {
-  if (startVideochat.value === true) {
+  if (startVideochat.value === true || callError.value !== null) {
     stopSound()
   }
 })
@@ -355,11 +370,12 @@ const getMedia = async () => {
 };
 
 watchEffect(() => {
+
   if (modalStatus.value === true || enableCall.value === true) {
     callEnd.value = false;
     notAnswered.value = false;
     stopwatchSecondOffset.value = new Date();
-    callError.value = '';
+    callError.value = null;
     startVideochat.value = (false);
     getMedia();
   }
@@ -381,23 +397,23 @@ watchEffect(() => {
 });
 
 watchEffect(() => {
-  if (partnerVideo !== null && partnerVideo !== undefined) {
-    refVideo.srcObject = partnerVideo;
+  if (partnerVideo.value !== null && partnerVideo.value !== undefined) {
+    refVideo.value = partnerVideo.value;
   }
 });
 
 const handleVideoStream = () => {
-  if (yourVideo && refUserVideo.value) {
+  if (yourVideo.value) {
     console.log('Setting srcObject for yourVideo');
     yourVideo.value.getTracks().forEach((track: any) => {
       console.log(`Track ${track.kind} enabled:`, track.enabled);
       track.enabled = true;
     });
-    refUserVideo.value.muted = true
-    refUserVideo.value.srcObject = yourVideo;
+    refUserVideo.value = yourVideo.value
   }
 };
 
+// обзервер для инициализации если вдруг элемент видео еще не существует
 watchEffect(() => {
   if (yourVideo.value && !refUserVideo.value) {
     const observer = new MutationObserver(() => {
@@ -438,6 +454,7 @@ const createRoom = () => {
         roomID.value = response.data.room_id;
         callStatus.value = response.data.status;
         localStorage.setItem('room', roomID.value);
+        // document.createElement('audioPlayer')
         if (enableCall.value === true) {
           getMedia()
         }
@@ -445,6 +462,7 @@ const createRoom = () => {
     })
     .catch((error: any) => {
       console.log('error: ', error);
+      callError.value = error.toString();
     });
 };
 

@@ -70,12 +70,17 @@
             aspect-ratio: 4 / 3;
             background-position: center center;
             background-repeat: no-repeat;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
         }
 
         .mirror {
             width: 20%;
             height: 20%;
             position: absolute;
+            display: flex;
+            align-items: center;
             right: 10px;
             top: 10px;
             border-radius: 10px;
@@ -84,6 +89,18 @@
             background-size: cover;
             aspect-ratio: 4 / 3;
             background-repeat: no-repeat;
+            overflow: hidden;
+        }
+
+        .mirror,
+        .main-window {
+            video {
+                background-size: cover;
+                width: 100%;
+                aspect-ratio: 4 / 3;
+                background-position: center center;
+                background-repeat: no-repeat;
+            }
         }
 
 

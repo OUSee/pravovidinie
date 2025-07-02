@@ -4,67 +4,41 @@ import VideoChatBar from './VideChatBar.vue'
 import DotSpinner from '../Loaders/DotSpinner.vue'
 import { inject, watchEffect, ref } from 'vue'
 
-const refVideoStream = inject<any>('refVideo');
-const refUserVideoStream = inject<any>('refUserVideo');
-
-const yourVideo = ref<HTMLVideoElement | null>(null)
-const partnerVideo = ref<HTMLVideoElement | null>(null)
+const refVideo = inject<any>('refVideo');
+const refUserVideo = inject<any>('refUserVideo');
 
 
-const handleVideoStream = () => {
-    if (yourVideo.value !== null && refUserVideoStream.value) {
-        console.log('Setting srcObject for yourVideo');
-        refUserVideoStream.getTracks().forEach((track: any) => {
-            console.log(`Track ${track.kind} enabled:`, track.enabled);
-            track.enabled = true;
-        });
-        yourVideo.value.muted = true
-        yourVideo.value.srcObject = refUserVideoStream.value;
+// test
+const testStream = ref<MediaStream | null>(null)
+
+const getMedia = async () => {
+    try {
+        testStream.value = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    } catch (e) {
+        console.error('Error accessing media devices.', e)
     }
-};
+}
+
+getMedia()
 
 watchEffect(() => {
-    console.log(refVideoStream.value);
-    console.log(refUserVideoStream.value);
-})
-
-watchEffect(() => {
-    if (refVideoStream.value !== null && refVideoStream.value !== undefined && partnerVideo.value !== null) {
-        partnerVideo.value.srcObject = refVideoStream.value;
+    if (refUserVideo && testStream.value !== null) {
+        refUserVideo.value.srcObject = testStream.value;
+        refUserVideo.value.muted = true;
+        refUserVideo.value.play()
     }
-});
-
-watchEffect(() => {
-    handleVideoStream()
-
-    if (yourVideo.value !== null && !refUserVideoStream.value) {
-        const observer = new MutationObserver(() => {
-            if (refUserVideoStream.value) {
-                handleVideoStream();
-                observer.disconnect();
-            }
-        });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-
-        return () => observer.disconnect();
-    }
-})
-
+},)
 </script>
 
 <template>
     <div class="videochat-window">
-        <div class="main-window">
-            <video ref="partnerVideo" src=""></video>
-            <DotSpinner v-if="refVideoStream === null || refVideoStream === undefined" />
+        <div class="main-window" @click="getMedia">
+            <video ref="refVideo" src=""></video>
+            <DotSpinner v-if="refVideo?.srcObject === null || refVideo?.srcObject === undefined" />
         </div>
         <div class="mirror">
-            <video ref="yourVideo" src=""></video>
-            <DotSpinner v-if="refUserVideoStream === null || refUserVideoStream === undefined" />
+            <video ref="refUserVideo" src=""></video>
+            <DotSpinner v-if="refUserVideo?.srcObject === null || refUserVideo?.srcObject === undefined" />
         </div>
         <VideoChatBar :checked="true" />
     </div>
