@@ -1,29 +1,43 @@
 <script setup lang="ts">
 import './VideoChat.scss'
-import { ref } from 'vue'
+import { inject, ref, type Ref } from 'vue'
 import MessageTemplate from './MessageTemplate.vue'
 import SendMessageIcon from '../Icons/SendMessageIcon.vue'
 import AttachFileIcon from '../Icons/AttachFileIcon.vue'
-import { testMessages } from '../../types'
+// import { testMessages } from '../../types'
 import type { Message } from '../../types'
 import { useConnectChatWebSocket } from './useChatLogic'
 
 const usertext = ref<string>('')
-const messages = ref<Message[]>(testMessages);
+const token = inject<Ref<string>>('token')
 const { sendMessage } = useConnectChatWebSocket()
+const messages = inject<Ref<Message[]>>('messages')
+const bottomRef = ref<HTMLElement | null>(null)
 
-// onMount get some text messages
+const scrollBottom = () => {
+    setTimeout(() => {
+        bottomRef.value?.scrollIntoView({ behavior: 'smooth' })
+    }, 150)
+}
 
 const generateTimestamp = (): string => {
     return new Date().toISOString();
 }
 const generateRandomId = (): string => {
-    return Math.random().toString(36).substring(2, 10);
+    return Math.random().toString(36).substring(2, 10) + '_' + token;
 }
 
 const handleSendMessage = (): void => {
-    if (usertext.value.trim() === '') {
+    if (usertext.value.trim() === '' || !token) {
         return
+    }
+    else if (usertext.value.trim() === '/clear-story') {
+        localStorage.setItem('meassages', '')
+        if (messages) {
+            messages.value = [];
+        }
+        usertext.value = '';
+        scrollBottom()
     }
     else {
         const newMessage: Message = {
@@ -31,11 +45,12 @@ const handleSendMessage = (): void => {
             seen: false,
             timestamp: generateTimestamp(),
             id: generateRandomId(),
-            from: "user2"
+            from: token.value
         }
 
         sendMessage(newMessage)
         usertext.value = '';
+        scrollBottom()
     }
 }
 
@@ -53,9 +68,10 @@ function handleEnter(event: KeyboardEvent) {
 </script>
 <template>
     <div class="videochat-chat">
-        <div class="history">
+        <div class="history" ref="meassagesTarget">
             <MessageTemplate v-for="message in messages" :key="message.id" :text="message.text"
                 :timestamp="message.timestamp" :seen="message.seen" :from="message.from" />
+            <div ref="bottomRef"></div>
         </div>
         <div class="user-bar">
             <button class="button-icon" title="attach">

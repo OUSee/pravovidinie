@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { inject, type Ref } from 'vue';
 import './VideoChat.scss'
 defineProps({
     text: String,
@@ -7,9 +8,11 @@ defineProps({
     from: String
 })
 
+const token = inject<Ref<string>>('token')
+
 function formatTimestamp(timestamp: string | undefined): { date: string; time: string } {
-    if(!timestamp){
-        return {date: '', time: ''}
+    if (!timestamp) {
+        return { date: '', time: '' }
     }
     const dateObj = new Date(timestamp);
 
@@ -36,7 +39,10 @@ function formatTimestamp(timestamp: string | undefined): { date: string; time: s
 
 </script>
 <template>
-    <div class="message" :class="from">
+    <div class="message" :class="{ user2: from === token }">
+        <p class="timestamp">
+            {{ from }}
+        </p>
         <p class="message-text">
             {{ text }}
         </p>

@@ -10,6 +10,7 @@
         flex: 1 1 0;
         max-width: 400px;
         min-height: 100%;
+        max-height: 93vh;
         background-color: var(--color-chat-bg);
         display: flex;
         flex-direction: column;
@@ -17,6 +18,8 @@
         .history {
             margin-top: auto;
             padding: 8px;
+            max-height: 100%;
+            overflow-y: auto;
         }
 
         .user-bar {
