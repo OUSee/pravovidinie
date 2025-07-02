@@ -1,0 +1,53 @@
+const __VLS_props = defineProps({
+    checked: Boolean,
+    color: String || undefined
+});
+debugger; /* PartiallyEnd: #3632/scriptSetup.vue */
+const __VLS_ctx = {};
+let __VLS_components;
+let __VLS_directives;
+__VLS_asFunctionalElement(__VLS_intrinsicElements.svg, __VLS_intrinsicElements.svg)({
+    width: "24",
+    height: "24",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    xmlns: "http://www.w3.org/2000/svg",
+});
+__VLS_asFunctionalElement(__VLS_intrinsicElements.path)({
+    d: "M3 9.8541C3 8.83011 3.83011 8 4.8541 8V8C5.55638 8 6.19839 7.60322 6.51246 6.97508L7.33333 5.33333C7.44329 5.11342 7.49827 5.00346 7.56062 4.90782C7.8859 4.40882 8.41668 4.08078 9.00848 4.01299C9.1219 4 9.24484 4 9.49071 4H14.5093C14.7552 4 14.8781 4 14.9915 4.01299C15.5833 4.08078 16.1141 4.40882 16.4394 4.90782C16.5017 5.00346 16.5567 5.11342 16.6667 5.33333L17.4875 6.97508C17.8016 7.60322 18.4436 8 19.1459 8V8C20.1699 8 21 8.83011 21 9.8541V14.8571C21 16.8619 21 17.8643 20.5402 18.5961C20.3004 18.9777 19.9777 19.3004 19.5961 19.5402C18.8643 20 17.8619 20 15.8571 20H8.14286C6.1381 20 5.13571 20 4.4039 19.5402C4.02229 19.3004 3.69961 18.9777 3.45983 18.5961C3 17.8643 3 16.8619 3 14.8571V9.8541Z",
+    stroke: (__VLS_ctx.color ?? 'white'),
+    'stroke-width': "2",
+});
+__VLS_asFunctionalElement(__VLS_intrinsicElements.circle)({
+    cx: "12",
+    cy: "13",
+    r: "3",
+    stroke: (__VLS_ctx.color ?? 'white'),
+    'stroke-width': "2",
+});
+if (!__VLS_ctx.checked) {
+    __VLS_asFunctionalElement(__VLS_intrinsicElements.path)({
+        d: "M22.5 13.5H1.5C0.671578 13.5 0 12.8284 0 12C0 11.1716 0.671578 10.5 1.5 10.5H22.5C23.3284 10.5 24 11.1716 24 12C24 12.8284 23.3284 13.5 22.5 13.5Z",
+        fill: (__VLS_ctx.color ?? 'white'),
+    });
+}
+var __VLS_dollars;
+const __VLS_self = (await import('vue')).defineComponent({
+    setup() {
+        return {};
+    },
+    props: {
+        checked: Boolean,
+        color: String || undefined
+    },
+});
+export default (await import('vue')).defineComponent({
+    setup() {
+        return {};
+    },
+    props: {
+        checked: Boolean,
+        color: String || undefined
+    },
+});
+; /* PartiallyEnd: #4569/main.vue */

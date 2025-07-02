@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import './VideoChat.scss'
 import VideoChatBar from './VideChatBar.vue'
+import DotSpinner from '../Loaders/DotSpinner.vue'
 import { inject, watchEffect, ref } from 'vue'
 
 const refVideoStream = inject<any>('refVideo');
@@ -57,8 +58,14 @@ watchEffect(() => {
 
 <template>
     <div class="videochat-window">
-        <video ref="partnerVideo" class="main-window" src=""></video>
-        <video ref="yourVideo" class="mirror" src=""></video>
+        <div class="main-window">
+            <video ref="partnerVideo" src=""></video>
+            <DotSpinner v-if="refVideoStream === null || refVideoStream === undefined" />
+        </div>
+        <div class="mirror">
+            <video ref="yourVideo" src=""></video>
+            <DotSpinner v-if="refUserVideoStream === null || refUserVideoStream === undefined" />
+        </div>
         <VideoChatBar :checked="true" />
     </div>
 </template>

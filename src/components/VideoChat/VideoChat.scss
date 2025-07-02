@@ -64,7 +64,7 @@
         .main-window {
             width: 100%;
             height: 100%;
-            background-image: url(./preview/photo_2025-06-20_16-08-44.jpg);
+            background-color: var(--color-blue-dark);
             background-size: cover;
             aspect-ratio: 4 / 3;
             background-position: center center;
@@ -79,7 +79,8 @@
             right: 10px;
             top: 10px;
             border-radius: 10px;
-            background-image: url(./preview/irina_manager.jpg);
+            background-color: var(--color-chat-message);
+            // background-image: url(./preview/irina_manager.jpg);
             background-size: cover;
             aspect-ratio: 4 / 3;
             background-repeat: no-repeat;
