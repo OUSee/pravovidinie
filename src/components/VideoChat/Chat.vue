@@ -6,9 +6,13 @@ import SendMessageIcon from '../Icons/SendMessageIcon.vue'
 import AttachFileIcon from '../Icons/AttachFileIcon.vue'
 import { testMessages } from '../../types'
 import type { Message } from '../../types'
+import { useConnectChatWebSocket } from './useChatLogic'
 
 const usertext = ref<string>('')
 const messages = ref<Message[]>(testMessages);
+const { sendMessage } = useConnectChatWebSocket()
+
+// onMount get some text messages
 
 const generateTimestamp = (): string => {
     return new Date().toISOString();
@@ -30,7 +34,7 @@ const handleSendMessage = (): void => {
             from: "user2"
         }
 
-        messages.value = [...messages.value, newMessage]
+        sendMessage(newMessage)
         usertext.value = '';
     }
 }
