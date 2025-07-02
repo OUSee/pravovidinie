@@ -4,10 +4,11 @@ import { ref } from 'vue'
 import MessageTemplate from './MessageTemplate.vue'
 import SendMessageIcon from '../Icons/SendMessageIcon.vue'
 import AttachFileIcon from '../Icons/AttachFileIcon.vue'
-import { testMessages } from '../../types.ts'
+import { testMessages } from '../../types'
+import type { Message } from '../../types'
 
-const usertext = ref<String>('')
-const messages = ref<Message>(testMessages);
+const usertext = ref<string>('')
+const messages = ref<Message[]>(testMessages);
 
 const generateTimestamp = (): string => {
     return new Date().toISOString();
@@ -56,7 +57,7 @@ function handleEnter(event: KeyboardEvent) {
             <button class="button-icon" title="attach">
                 <AttachFileIcon color="#0A2463" />
             </button>
-            <label ref for="user-input">
+            <label for="user-input">
                 <textarea v-model="usertext" @keydown.enter.prevent="handleEnter" name="user-input" id="user-input" />
             </label>
             <button class="button-icon" title="send-message" @click="handleSendMessage">

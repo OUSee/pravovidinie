@@ -4,10 +4,10 @@ export enum UserType {
 }
 
 export type Message = {
-    text: String;
-    seen: Boolean | undefined;
-    timestamp: String;
-    id: String;
+    text: string;
+    seen: boolean | undefined;
+    timestamp: string;
+    id: string;
     from: string;
 }
 
