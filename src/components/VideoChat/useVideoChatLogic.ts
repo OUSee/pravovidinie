@@ -1,4 +1,4 @@
-import { ref, type Ref, watchEffect, inject, onUnmounted, defineExpose } from 'vue'
+import { ref, type Ref, watchEffect, inject, onUnmounted } from 'vue'
 import axios from "axios";
 import callSound from '../../assets/skype-incoming.mp3'
 

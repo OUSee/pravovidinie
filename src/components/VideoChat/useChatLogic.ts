@@ -6,15 +6,21 @@ export const useConnectChatWebSocket =  () => {
 //refs    
 const ws = ref<WebSocket | null>(null);
 const messages = inject<Ref<Message[]>>('messages');
-const reconnectTokens = ref<number>(5)
+const reconnectTokens = ref<number>(3)
 
 
 // logic
 const connectWebSocket = () => {
-    ws.value = new WebSocket('ws://localhost:3000');
+    try{
+        ws.value = new WebSocket('ws://localhost:3000');
+    }catch(err){
+        console.error('Ошибка WebSocket', err)
+        reconnect();
+        return
+    }
 
     ws.value.onopen = () => {
-        console.log('Соединение установлено');
+        console.log('chat connected');
     };
 
     ws.value.onmessage = (event) => {
@@ -30,7 +36,7 @@ const connectWebSocket = () => {
     };
 
     ws.value.onclose = () => {
-        console.log('Соединение закрыто, пытаемся переподключиться...');
+        console.warn('Соединение закрыто, пытаемся переподключиться...');
         reconnect();
     };
 
@@ -55,7 +61,7 @@ const reconnect = () => {
     reconnectTokens.value--
     }
     else{
-        console.log('reconnect tries are expired, try reload the page')
+        console.warn('reconnect tries are expired, try reload the page')
     }
 };
 
