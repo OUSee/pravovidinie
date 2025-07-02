@@ -1,0 +1,37 @@
+header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 100%;
+    width: 100vw;
+    padding: 8px 19px;
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    nav {
+        display: flex;
+        gap: 8px;
+    }
+
+
+    &>.lk {
+        display: flex;
+        gap: 8px;
+
+        .lk-profile {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+
+            &>.img-wrapper {
+                width: 33px;
+                height: 33px;
+                background-color: var(--color-green);
+                border-radius: 50%;
+            }
+        }
+    }
+}
