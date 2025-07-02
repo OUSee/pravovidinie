@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import Header from '@/components/Header/Header.vue';
-import VideoChat from '@/components/VideoChat/Videochat.vue';
-import { UserType } from './types.ts'
-import { ref } from 'vue'
+import Header from '../src/components/Header/Header.vue';
+import VideoChat from '../src/components/VideoChat/VideoChat.vue';
+// import { UserType } from './types'
+// import { ref } from 'vue'
 
-const userType = ref<UserType>(UserType.customer)
+// const userType = ref<UserType>(UserType.customer)
 
 
 </script>

@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import './VideoChat.scss'
-const props = defineProps({
+defineProps({
     text: String,
     timestamp: String,
     seen: Boolean || undefined,
     from: String
 })
 
-function formatTimestamp(timestamp: string): { date: string; time: string } {
+function formatTimestamp(timestamp: string | undefined): { date: string; time: string } {
+    if(!timestamp){
+        return {date: '', time: ''}
+    }
     const dateObj = new Date(timestamp);
 
     if (isNaN(dateObj.getTime())) {
