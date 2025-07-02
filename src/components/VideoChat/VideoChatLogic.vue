@@ -281,7 +281,6 @@ const getMedia = async () => {
         return;
       }
       startCall.value = new Date()
-
       webSocketRef.value.send(JSON.stringify({ join: true }));
       userStream.value = stream;
       yourVideo.value = stream;
@@ -436,9 +435,9 @@ const createRoom = () => {
         return;
       }
       if (response.data.room_id) {
-        roomID.value = response.data.room_id
-        callStatus.value = response.data.status
-        localStorage.setItem('room', roomID.value)
+        roomID.value = response.data.room_id;
+        callStatus.value = response.data.status;
+        localStorage.setItem('room', roomID.value);
         if (enableCall.value === true) {
           getMedia()
         }
