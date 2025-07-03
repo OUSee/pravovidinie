@@ -10,7 +10,7 @@ export const useVideChatLogic = () => {
     const webSocketRef = ref<WebSocket | null>(null)
     const yourVideo = ref<MediaStream | null>(null)
     const partnerVideo = ref<MediaStream | null>(null)
-    const roomID = ref<string>('')
+    const roomID = inject<Ref<string>>('')
     const userStream = ref<MediaStream | null>(null)
     const peerRef = ref<RTCPeerConnection | null>(null)
     const videoEnabled = ref(true)
@@ -69,7 +69,7 @@ export const useVideChatLogic = () => {
     }
 
     const startCall = async () => {
-        if (!roomID.value) {
+        if (roomID && !roomID.value) {
             await createRoom()
         }
         else {
@@ -170,7 +170,11 @@ export const useVideChatLogic = () => {
     }
 
     const setupWebSocket = () => {
-        webSocketRef.value = new WebSocket(`ws://localhost:8000/join?roomID=${roomID.value}&token=${token}`)
+        if(!roomID){
+            console.error('room id not provided')
+            return
+        }
+        webSocketRef.value = new WebSocket(`ws://api/join?roomID=${roomID.value}&token=${token}`)
 
         webSocketRef.value.onopen = () => {
             webSocketRef.value?.send(JSON.stringify({ join: true }))
@@ -204,12 +208,12 @@ export const useVideChatLogic = () => {
     // Room management
     const createRoom = async () => {
         try {
-            const response = await axios.post(`http://localhost:8000/create`,
+            const response = await axios.post(`/api/create`,
                 { profile: 'test' },
                 { headers: { Authorization: `Bearer ${token}` } }
             )
 
-            if (response.data.room_id) {
+            if (roomID && response.data.room_id) {
                 roomID.value = response.data.room_id
                 localStorage.setItem('room', roomID.value)
                 getMedia()
@@ -224,9 +228,9 @@ export const useVideChatLogic = () => {
 
     // Watch effects
     watchEffect(() => {
-        if (enableCall && enableCall.value && !roomID.value) {
+        if (enableCall && enableCall.value && roomID && !roomID.value) {
             createRoom()
-        } else if (enableCall && enableCall.value && roomID.value) {
+        } else if (enableCall && enableCall.value && roomID && roomID.value) {
             getMedia()
         }
     })

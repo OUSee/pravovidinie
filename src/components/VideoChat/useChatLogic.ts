@@ -1,6 +1,7 @@
 
 import { ref, type Ref, onMounted, onBeforeUnmount, inject, watchEffect } from 'vue'
 import type { Message } from '../../types';
+import axios from 'axios';
 
 export const useConnectChatWebSocket =  () => {
 //refs    
@@ -9,6 +10,9 @@ const messages = inject<Ref<Message[]>>('messages');
 const reconnectTokens = ref<number>(3);
 const localStory = localStorage.getItem('messages');
 const stored = localStory ? JSON.parse(localStory) : [];
+const roomID = inject<Ref<string>>('roomID');
+const token = inject<Ref<string>>('token')
+const user = localStorage.getItem('user')
 
 const fetchStory = () => {
     // fetch
@@ -22,7 +26,13 @@ const fetchStory = () => {
 // logic
 const connectWebSocket = () => {
     try{
-        ws.value = new WebSocket('ws://localhost:3000');
+        if(roomID && token){
+            ws.value = new WebSocket(`ws://api/join?roomID=${roomID.value}&token=${token.value}`);
+        }
+        else{
+            console.error('error setting websocket')
+            return
+        }
     }catch(err){
         console.error('Ошибка WebSocket', err)
         reconnect();
@@ -57,13 +67,32 @@ const connectWebSocket = () => {
     
 };
 
-const sendMessage = (message: Message) => {
+const sendMessage = async (message: Message) => {
     if (ws.value && ws.value.readyState === WebSocket.OPEN && message) {
         ws.value.send(JSON.stringify(message));
     }
     console.log('new message: ', message)
     stored.push(message);
     localStorage.setItem('messages', JSON.stringify(stored))
+
+    if(user){
+        try{
+            const response: any = await axios.post(`/api/login`,
+        {
+            body: {
+                sender_id: JSON.parse(user)?.id,
+                message_text: message.text,
+                room_id: roomID
+            }
+        })
+        if(!response){
+            console.error('no responce')
+        }
+        }catch(error){
+            console.error(error)
+        }
+    }
+    
 };
 
 const reconnect = () => {

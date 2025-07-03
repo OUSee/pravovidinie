@@ -31,14 +31,6 @@ const handleSendMessage = (): void => {
     if (usertext.value.trim() === '' || !token) {
         return
     }
-    else if (usertext.value.trim() === '/clear-story') {
-        localStorage.setItem('meassages', '')
-        if (messages) {
-            messages.value = [];
-        }
-        usertext.value = '';
-        scrollBottom()
-    }
     else {
         const newMessage: Message = {
             text: usertext.value,

@@ -46,3 +46,65 @@ button {
 }
 
 // .container {}
+
+dialog {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #07213850;
+    display: none;
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+
+    &.active {
+        display: block;
+        opacity: 1;
+    }
+
+    .modal-content {
+        background-color: white;
+        border-radius: 15px;
+        width: fit-content;
+        height: fit-content;
+        max-height: 90vh;
+        max-width: 90vw;
+        position: absolute;
+        padding: 10px 20px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10;
+
+            label {
+                width: 100%;
+
+                input {
+                    width: 100%;
+                }
+            }
+
+        }
+    }
+
+    .close-modal {
+        width: 40px;
+        height: 40px;
+        background-color: white;
+        border-radius: 50%;
+        position: absolute;
+        right: 10px;
+        top: 10px;
+
+        &:hover {
+            cursor: pointer;
+            background-color: rgb(255, 224, 224);
+            transform: rotate(10deg);
+        }
+    }
+}
