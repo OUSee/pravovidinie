@@ -101,6 +101,23 @@ dialog {
                     border-color: var(--color-blue-dark);
                 }
 
+                &:has(input:required) {
+                    &::after {
+                        content: '*';
+                        color: orange;
+                        position: absolute;
+                        top: 2px;
+                        left: 4px;
+                        font-size: 14px;
+                    }
+                }
+
+                &:has(input:valid) {
+                    &::after {
+                        display: none;
+                    }
+                }
+
                 .show-password {
                     position: absolute;
                     top: 50%;
@@ -110,11 +127,8 @@ dialog {
                     min-height: 30px;
                     width: 30px;
                     height: 30px;
-
-                    &:hover {}
                 }
             }
-
         }
     }
 

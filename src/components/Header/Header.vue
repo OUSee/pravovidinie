@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { UserType } from '../../types'
 import './Header.scss'
-const balance = 10000;
-const nickName = 'Иванов Иван'
+const user = localStorage.getItem('user') ?? '{}'
+
+const { first_name = '', last_name = '', balance = 0, user_type = 'client' } = JSON.parse(user)
+
 
 const handleNumberToRanges = (number: number): string => {
     if (!Number.isFinite(number)) {
@@ -29,11 +32,10 @@ const handleNumberToRanges = (number: number): string => {
                 {{ handleNumberToRanges(balance) }} ₽
             </button>
             <div class="lk-profile">
-                <div class="img-wrapper">
-
+                <div class="img-wrapper" :class="{ lawyer: user_type === 'lawyer' }">
                 </div>
                 <p>
-                    {{ nickName }}
+                    {{ first_name }} {{ last_name }}
                 </p>
             </div>
         </div>

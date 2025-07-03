@@ -70,11 +70,10 @@ onMounted(() => {
         <template #default>
             <form @submit.prevent="handleSubmit">
                 <label for="email">
-                    <input autocomplete="true" type="email" id="email" v-model="email" placeholder="Email" required>
+                    <input type="email" id="email" v-model="email" placeholder="Email" required>
                 </label>
                 <label for="password">
-                    <input autocomplete="true" type="text" v-model="password" id="password" placeholder="Password"
-                        required>
+                    <input type="text" v-model="password" id="password" placeholder="Password" required>
                     <button class="show-password" @click.prevent="handleShowPassword">
                         <EyeShowIcon :checked="hidePassword" />
                     </button>

@@ -3,7 +3,7 @@ import { inject, type Ref } from 'vue';
 import './VideoChat.scss'
 defineProps({
     text: String,
-    timestamp: String,
+    timestamp: String || undefined,
     seen: Boolean || undefined,
     from: String
 })

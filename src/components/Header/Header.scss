@@ -31,6 +31,10 @@ header {
                 height: 33px;
                 background-color: var(--color-green);
                 border-radius: 50%;
+
+                &.lawyer {
+                    background-color: var(--color-blue-dark);
+                }
             }
         }
     }

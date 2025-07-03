@@ -35,7 +35,15 @@ const connectWebSocket = () => {
             return
         }
         try{
-             messages.value.unshift(JSON.parse(event.data));
+            const receive = JSON.parse(event.data)
+            const incoming_message: Message = {
+                text: receive,
+                from: receive.sender.id,
+                seen:  undefined,
+                timestamp:  undefined,
+                id:  undefined,
+            }
+            messages.value.unshift(incoming_message);
         }catch(err){
             console.error('failed to parse message data')
         }

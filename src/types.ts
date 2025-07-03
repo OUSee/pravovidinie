@@ -1,5 +1,5 @@
 export enum UserType {
-    customer = 'customer',
+    client = 'client',
     lawyer = 'lawyer',
     autorize = 'autorize'
 }
@@ -7,8 +7,8 @@ export enum UserType {
 export type Message = {
     text: string;
     seen: boolean | undefined;
-    timestamp: string;
-    id: string;
+    timestamp: string | undefined;
+    id: string | undefined;
     from: string;
 }
 
