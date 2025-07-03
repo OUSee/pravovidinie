@@ -63,8 +63,6 @@ const connectWebSocket = () => {
     ws.value.onerror = (error) => {
         console.error('Ошибка WebSocket', error);
     };
-
-    
 };
 
 const sendMessage = async (message: Message) => {
@@ -134,7 +132,12 @@ watchEffect(()=>{
 })
 
 //lifesycle
-onMounted(()=>{fetchStory();connectWebSocket()});
+onMounted(()=>{
+    if(roomID?.value !== '' && roomID?.value){
+         fetchStory();
+         connectWebSocket();
+    }
+});
 onBeforeUnmount(() => {ws.value?.close();});
 
 

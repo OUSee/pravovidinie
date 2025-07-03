@@ -145,8 +145,6 @@ export const useVideChatLogic = () => {
         isPlaying.value = false
     }
 
-
-
     // Media initialization
     const getMedia = async () => {
         try {
@@ -247,14 +245,11 @@ export const useVideChatLogic = () => {
         }
     })
 
-
-
     // Cleanup on unmount
     onUnmounted(() => {
         cleanup()
         localStorage.removeItem('room')
     })
-
 
     
     // exported functions

@@ -17,27 +17,27 @@ const fetchApi = async () => {
     loading.value = true
     try {
         if (password.value !== '' && email.value !== '') {
-            const response: any = await axios.post(`/api/login`,
+            const response: any = await axios.post(`/api/auth/login`,
                 {
-                    body: {
-                        emai: email.value,
-                        password: password.value
-                    }
+                    email: email.value,
+                    password: password.value
                 })
             if (response.user && token) {
                 localStorage.setItem('user', JSON.stringify(response.user))
                 token.value = response.user.token
+
             }
             else {
                 console.log(response.message)
+
             }
         }
         loading.value = false
+        modal.value = false
     } catch (err) {
         console.error('ERR: ', err)
         loading.value = false
     }
-
 }
 
 const handleSubmit = () => {
