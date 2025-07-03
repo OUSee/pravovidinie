@@ -27,7 +27,7 @@ const fetchStory = () => {
 const connectWebSocket = () => {
     try{
         if(roomID && token){
-            ws.value = new WebSocket(`ws://api/join?roomID=${roomID.value}&token=${token.value}`);
+            ws.value = new WebSocket(`ws://localhost:8000/api/join?roomID=${roomID.value}&token=${token.value}`);
         }
         else{
             console.error('error setting websocket')

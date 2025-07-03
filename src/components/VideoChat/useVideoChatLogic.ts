@@ -172,7 +172,7 @@ export const useVideChatLogic = () => {
             console.error('room id not provided')
             return
         }
-        webSocketRef.value = new WebSocket(`ws://api/join?roomID=${roomID.value}&token=${token}`)
+        webSocketRef.value = new WebSocket(`ws://localhost:8000/api/join?roomID=${roomID.value}&token=${token}`)
 
         webSocketRef.value.onopen = () => {
             webSocketRef.value?.send(JSON.stringify({ join: true }))
@@ -206,7 +206,7 @@ export const useVideChatLogic = () => {
     // Room management
     const createRoom = async () => {
         try {
-            const response = await axios.post(`/api/create`,
+            const response = await axios.post(`http://localhost:8000/api/create`,
                 { profile: 'test' },
                 { headers: { Authorization: `Bearer ${token}` } }
             )
