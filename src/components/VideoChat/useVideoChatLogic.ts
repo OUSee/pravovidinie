@@ -20,6 +20,8 @@ export const useVideChatLogic = () => {
     const audioPlayer = ref<HTMLAudioElement | null>(null)
     const isPlaying = ref(false)
     const token = inject<Ref<string>>('token')
+    const API_ACESS_ROUTE = inject<string>('API_ACESS_ROUTE')
+    const API_ACESS_ROUTE_WS = inject<string>('API_ACESS_ROUTE_WS')
 
 
 
@@ -180,7 +182,7 @@ export const useVideChatLogic = () => {
             console.error('room id not provided or no websocket')
             return
         }
-        webSocketRef.value = new WebSocket(`ws://localhost:8000/api/join?roomID=${roomID.value}&token=${token}`)
+        webSocketRef.value = new WebSocket(API_ACESS_ROUTE_WS + `/join?roomID=${roomID.value}&token=${token}`)
 
         webSocketRef.value.onopen = () => {
             webSocketRef.value?.send(JSON.stringify({ join: true }))
@@ -214,7 +216,8 @@ export const useVideChatLogic = () => {
     // Room management
     const createRoom = async () => {
         try {
-            const response = await axios.post(`http://localhost:8000/api/create`,
+            // http://api.xn--80aeaifasc8bfim.xn--p1ai/api/create
+            const response = await axios.post(API_ACESS_ROUTE + `/api/create`,
                 { profile: 'test' },
                 { headers: { Authorization: `Bearer ${token}` } }
             )

@@ -5,6 +5,7 @@ import DotSpinner from '../../Loaders/DotSpinner.vue';
 import axios from 'axios';
 import EyeShowIcon from '../../Icons/EyeShowIcon.vue';
 
+
 const modal = ref<boolean>(false)
 const loading = ref<boolean>(false)
 const email = ref<string>('');
@@ -12,13 +13,24 @@ const password = ref<string>('');
 const token = inject<Ref<string>>('token')
 const hidePassword = ref<boolean>(true)
 const user = inject<any>('user')
+const API_ACESS_ROUTE = inject<string>('API_ACESS_ROUTE')
 
 
 const fetchApi = async () => {
     loading.value = true
     try {
         if (password.value !== '' && email.value !== '') {
-            const response: any = await axios.post(`http://localhost:8001/api/auth/login`,
+            // const response: any = await fetch(API_ACESS_ROUTE + '/api/api/auth/login', {
+            //     method: 'POST', // HTTP method
+            //     headers: {
+            //         'Content-Type': 'application/json' // Sending JSON data
+            //     },
+            //     body: JSON.stringify({
+            //         email: email.value,
+            //         password: password.value
+            //     })
+            // });
+            const response: any = await axios.post(API_ACESS_ROUTE + '/api/api/auth/login',
                 {
                     email: email.value,
                     password: password.value
@@ -43,7 +55,7 @@ const fetchApi = async () => {
     }
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
     console.log({ email: email.value, password: password.value })
     fetchApi()
 }

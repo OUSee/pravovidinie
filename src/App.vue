@@ -8,9 +8,16 @@ const token = ref<string>('')
 const roomID = ref<string>('')
 const user = ref<any>(localStorage.getItem('user'))
 
+const API_ACESS_ROUTE = "http://xn--80aeaifasc8bfim.xn--p1ai";
+const API_ACESS_ROUTE_WS = "ws://api.xn--80aeaifasc8bfim.xn--p1ai/";
+
+provide('API_ACESS_ROUTE', API_ACESS_ROUTE)
+provide('API_ACESS_ROUTE_WS', API_ACESS_ROUTE_WS)
+
 provide('token', token)
 provide('roomID', roomID)
 provide('user', user)
+
 
 
 </script>

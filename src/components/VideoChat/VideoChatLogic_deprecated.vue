@@ -286,7 +286,7 @@ const getMedia = async () => {
       return;
     }
     webSocketRef.value = new WebSocket(
-      `ws://localhost:8000/join?roomID=${roomID.value}&token=${token}`
+      `/join?roomID=${roomID.value}&token=${token}`
     );
     webSocketRef.value.onopen = () => {
       if (stream === null) {
@@ -435,7 +435,7 @@ watchEffect(() => {
 
 
 const createVideoCallRoom = () => {
-  const BASE_API_URL = `http://localhost:8000`;
+  const BASE_API_URL = `http://api.xn--80aeaifasc8bfim.xn--p1ai/api`;
   return axios.post(
     `${BASE_API_URL}/create`,
     { profile: 'test' },

@@ -12,6 +12,7 @@ const localStory = localStorage.getItem('messages');
 const stored = localStory ? JSON.parse(localStory) : [];
 const roomID = inject<Ref<string>>('roomID');
 const user = inject<any>('user')
+const API_ACESS_ROUTE = inject<string>('API_ACESS_ROUTE')
 
 const fetchStory = () => {
     // fetch
@@ -73,7 +74,7 @@ const sendMessage = async (message: Message) => {
 
     if(user){
         try{
-            const response: any = await axios.post(`/api/login`,
+            const response: any = await axios.post(API_ACESS_ROUTE + `/api/message`,
         {
             body: {
                 sender_id: JSON.parse(user)?.id,

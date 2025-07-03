@@ -15,5 +15,3 @@ export type Message = {
 export enum CallStatus {
   canceled = 'canceled'
 }
-
-
