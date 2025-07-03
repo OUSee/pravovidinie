@@ -3,15 +3,15 @@ import { onMounted, ref, type Ref, inject } from 'vue';
 import Modal from '../Modal.vue';
 import DotSpinner from '../../Loaders/DotSpinner.vue';
 import axios from 'axios';
+import EyeShowIcon from '../../Icons/EyeShowIcon.vue';
 
 const modal = ref<boolean>(false)
 const loading = ref<boolean>(false)
 const email = ref<string>('');
 const password = ref<string>('');
 const token = inject<Ref<string>>('token')
-const handleCloseModal = () => {
-    // modal.value = false
-}
+const hidePassword = ref<boolean>(true)
+
 
 const fetchApi = async () => {
     loading.value = true
@@ -21,15 +21,15 @@ const fetchApi = async () => {
                 {
                     email: email.value,
                     password: password.value
-                })
+                }
+            )
+            console.log('resp', response)
             if (response.user && token) {
                 localStorage.setItem('user', JSON.stringify(response.user))
                 token.value = response.user.token
-                console.log('resp', response)
             }
             else {
-                console.log(response.message)
-
+                console.log('resp message', response.message)
             }
         }
         loading.value = false
@@ -37,6 +37,7 @@ const fetchApi = async () => {
     } catch (err) {
         console.error('ERR: ', err)
         loading.value = false
+        modal.value = false
     }
 }
 
@@ -52,6 +53,11 @@ const checkIfAutentificated = () => {
     }
 }
 
+
+const handleShowPassword = () => {
+    hidePassword.value = !hidePassword.value
+}
+
 onMounted(() => {
     checkIfAutentificated()
 })
@@ -60,15 +66,18 @@ onMounted(() => {
 </script>
 
 <template>
-    <Modal header="registration" message="perform a registration to continue use site" :is-open="modal"
-        :onClose="handleCloseModal">
+    <Modal header="Login" message="log in to continue using site" :is-open="modal">
         <template #default>
             <form @submit.prevent="handleSubmit">
                 <label for="email">
-                    <input type="email" name="email" v-model="email" placeholder="Email" required>
+                    <input autocomplete="true" type="email" id="email" v-model="email" placeholder="Email" required>
                 </label>
                 <label for="password">
-                    <input type="text" v-model="password" name="password" placeholder="Password" required>
+                    <input autocomplete="true" type="text" v-model="password" id="password" placeholder="Password"
+                        required>
+                    <button class="show-password" @click.prevent="handleShowPassword">
+                        <EyeShowIcon :checked="hidePassword" />
+                    </button>
                 </label>
                 <button type="submit">
                     <span v-if="!loading">Login</span>

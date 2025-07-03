@@ -69,6 +69,7 @@ dialog {
         width: fit-content;
         height: fit-content;
         max-height: 90vh;
+        min-width: 350px;
         max-width: 90vw;
         position: absolute;
         padding: 10px 20px;
@@ -79,13 +80,38 @@ dialog {
         form {
             display: flex;
             flex-direction: column;
-            gap: 10;
+            gap: 10px;
 
             label {
                 width: 100%;
+                border: 1px solid var(--color-chat-message);
+                padding: 5px 10px;
+                border-radius: 25px;
+                background-color: var(--color-chat-bg);
+                position: relative;
 
                 input {
                     width: 100%;
+                    border: none;
+                    outline: none;
+                    background-color: transparent;
+                }
+
+                &:has(input:focus-visible) {
+                    border-color: var(--color-blue-dark);
+                }
+
+                .show-password {
+                    position: absolute;
+                    top: 50%;
+                    right: 0px;
+                    transform: translateY(-50%);
+                    min-width: 30px;
+                    min-height: 30px;
+                    width: 30px;
+                    height: 30px;
+
+                    &:hover {}
                 }
             }
 

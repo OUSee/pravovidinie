@@ -7,7 +7,7 @@ export const useVideChatLogic = () => {
     const refVideo = inject<Ref<HTMLVideoElement>>('refVideo')
     const refUserVideo = inject<Ref<HTMLVideoElement>>('refUserVideo')
     const enableCall = inject<Ref<boolean>>('enableCall')
-    const webSocketRef = ref<WebSocket | null>(null)
+    const webSocketRef = inject<Ref<WebSocket | null>>('webSocketRef')
     const yourVideo = ref<MediaStream | null>(null)
     const partnerVideo = ref<MediaStream | null>(null)
     const roomID = inject<Ref<string>>('')
@@ -36,6 +36,11 @@ export const useVideChatLogic = () => {
             ]
         })
 
+        if(!webSocketRef || !webSocketRef.value){
+            console.error('no websocket connection')
+            return peer
+        }
+
         peer.onnegotiationneeded = () => handleNegotiationNeeded()
         peer.onicecandidate = (e) => e.candidate && webSocketRef.value?.send(JSON.stringify({ iceCandidate: e.candidate }))
         peer.ontrack = (e) => partnerVideo.value = e.streams[0]
@@ -44,7 +49,7 @@ export const useVideChatLogic = () => {
     }
 
     const handleNegotiationNeeded = async () => {
-        if (!peerRef.value) return
+        if (!peerRef.value || !webSocketRef) return
 
         try {
             const offer = await peerRef.value.createOffer()
@@ -58,7 +63,7 @@ export const useVideChatLogic = () => {
     const handleOffer = async (offer: RTCSessionDescriptionInit) => {
         peerRef.value = createPeer()
 
-        if (!peerRef.value || !userStream.value) return
+        if (!peerRef.value || !userStream.value || !webSocketRef) return
 
         await peerRef.value.setRemoteDescription(new RTCSessionDescription(offer))
         userStream.value.getTracks().forEach(track => peerRef.value?.addTrack(track, userStream.value!))
@@ -110,6 +115,7 @@ export const useVideChatLogic = () => {
 
     // Call control functions
     const endCall = () => {
+        if(!webSocketRef) return
         webSocketRef.value?.send(JSON.stringify({ close: true, reason: "user_close" }))
         cleanup()
     }
@@ -121,9 +127,11 @@ export const useVideChatLogic = () => {
         userStream.value = null
         yourVideo.value = null
         partnerVideo.value = null
+        stopSound()
+
+        if(!webSocketRef) return
         webSocketRef.value?.close()
         webSocketRef.value = null
-        stopSound()
     }
 
 
@@ -168,8 +176,8 @@ export const useVideChatLogic = () => {
     }
 
     const setupWebSocket = () => {
-        if(!roomID){
-            console.error('room id not provided')
+        if(!roomID || !webSocketRef){
+            console.error('room id not provided or no websocket')
             return
         }
         webSocketRef.value = new WebSocket(`ws://localhost:8000/api/join?roomID=${roomID.value}&token=${token}`)

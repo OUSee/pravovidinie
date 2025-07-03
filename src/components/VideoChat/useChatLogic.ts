@@ -5,13 +5,12 @@ import axios from 'axios';
 
 export const useConnectChatWebSocket =  () => {
 //refs    
-const ws = ref<WebSocket | null>(null);
+const ws = inject<Ref<WebSocket | null>>('webSocketRef');
 const messages = inject<Ref<Message[]>>('messages');
 const reconnectTokens = ref<number>(3);
 const localStory = localStorage.getItem('messages');
 const stored = localStory ? JSON.parse(localStory) : [];
 const roomID = inject<Ref<string>>('roomID');
-const token = inject<Ref<string>>('token')
 const user = localStorage.getItem('user')
 
 const fetchStory = () => {
@@ -25,25 +24,12 @@ const fetchStory = () => {
 
 // logic
 const connectWebSocket = () => {
-    try{
-        if(roomID && token){
-            ws.value = new WebSocket(`ws://localhost:8000/api/join?roomID=${roomID.value}&token=${token.value}`);
-        }
-        else{
-            console.error('error setting websocket')
-            return
-        }
-    }catch(err){
-        console.error('Ошибка WebSocket', err)
-        reconnect();
-        return
-    }
+    if(ws && ws.value){
+        ws.value.onopen = () => {
+            console.log('chat connected');
+        };
 
-    ws.value.onopen = () => {
-        console.log('chat connected');
-    };
-
-    ws.value.onmessage = (event) => {
+        ws.value.onmessage = (event) => {
         if (!messages) {
             console.error('messages is undef')
             return
@@ -53,20 +39,24 @@ const connectWebSocket = () => {
         }catch(err){
             console.error('failed to parse message data')
         }
-    };
+        };
 
-    ws.value.onclose = () => {
+        ws.value.onclose = () => {
         console.warn('Соединение закрыто, пытаемся переподключиться...');
         reconnect();
-    };
+        };
 
-    ws.value.onerror = (error) => {
+        ws.value.onerror = (error) => {
         console.error('Ошибка WebSocket', error);
-    };
+        };
+    }
+    else(
+        console.log('no websocket connection')
+    )
 };
 
 const sendMessage = async (message: Message) => {
-    if (ws.value && ws.value.readyState === WebSocket.OPEN && message) {
+    if (ws && ws.value && ws.value.readyState === WebSocket.OPEN && message) {
         ws.value.send(JSON.stringify(message));
     }
     console.log('new message: ', message)
@@ -96,7 +86,7 @@ const sendMessage = async (message: Message) => {
 const reconnect = () => {
     if(reconnectTokens.value > 0){
         setTimeout(() => {
-            if (!ws.value || ws.value.readyState === WebSocket.CLOSED) {
+            if (ws && (!ws.value || ws.value.readyState === WebSocket.CLOSED)) {
               connectWebSocket();
             }
         }, 3000);
@@ -138,7 +128,7 @@ onMounted(()=>{
          connectWebSocket();
     }
 });
-onBeforeUnmount(() => {ws.value?.close();});
+onBeforeUnmount(() => {if(ws){ws.value?.close();}});
 
 
 

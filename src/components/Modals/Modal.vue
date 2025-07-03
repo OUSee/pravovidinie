@@ -8,7 +8,7 @@ defineProps({
     isOpen: Boolean,
     onClose: {
         type: Function as PropType<() => void>,
-        required: true
+        required: false
     }
 })
 </script>
@@ -16,7 +16,7 @@ defineProps({
 <template>
     <dialog :class="{ active: isOpen }">
         <div class="modal-content">
-            <button class="close-modal" @click="() => onClose()">
+            <button v-if="!!onClose" class="close-modal" @click="() => { if (onClose) { onClose() } }">
                 <CrossIcon color="#072138" />
             </button>
             <h1 class="modal-header">

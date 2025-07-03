@@ -7,6 +7,7 @@ import { type Message } from '../../types'
 
 const refVideo = ref<HTMLTextAreaElement | null>(null)
 const refUserVideo = ref<HTMLTextAreaElement | null>(null)
+const webSocketRef = ref<WebSocket | null>(null)
 const enableCall = ref<boolean>(false)
 const messages = ref<Message[]>([]);
 
@@ -14,6 +15,7 @@ provide('refVideo', refVideo)
 provide('refUserVideo', refUserVideo)
 provide('enableCall', enableCall)
 provide('messages', messages)
+provide('webSocketRef', webSocketRef)
 
 
 </script>
