@@ -11,7 +11,7 @@ const reconnectTokens = ref<number>(3);
 const localStory = localStorage.getItem('messages');
 const stored = localStory ? JSON.parse(localStory) : [];
 const roomID = inject<Ref<string>>('roomID');
-const user = localStorage.getItem('user')
+const user = inject<any>('user')
 
 const fetchStory = () => {
     // fetch

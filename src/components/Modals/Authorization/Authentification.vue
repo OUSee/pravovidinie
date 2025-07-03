@@ -11,6 +11,7 @@ const email = ref<string>('');
 const password = ref<string>('');
 const token = inject<Ref<string>>('token')
 const hidePassword = ref<boolean>(true)
+const user = inject<any>('user')
 
 
 const fetchApi = async () => {
@@ -24,8 +25,9 @@ const fetchApi = async () => {
                 }
             )
             console.log('resp', response)
-            if (response.user && token) {
+            if (user && response.user && token) {
                 localStorage.setItem('user', JSON.stringify(response.user))
+                user.value = response.user
                 token.value = response.user.token
             }
             else {
@@ -46,9 +48,8 @@ const handleSubmit = () => {
     fetchApi()
 }
 const checkIfAutentificated = () => {
-    const user = localStorage.getItem('user')
-    console.log('user', user)
-    if (!user) {
+    const stored_user = localStorage.getItem('user')
+    if (!stored_user) {
         modal.value = true
     }
 }

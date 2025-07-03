@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UserType } from '../../types'
+import LogOutButton from '../Icons/LogOutButton.vue'
 import './Header.scss'
 const user = localStorage.getItem('user') ?? '{}'
 
@@ -11,6 +11,11 @@ const handleNumberToRanges = (number: number): string => {
         return '0';
     }
     return new Intl.NumberFormat('ru-RU').format(number);
+}
+
+const handleLogOut = () => {
+    localStorage.removeItem('user')
+    location.reload()
 }
 </script>
 
@@ -38,6 +43,9 @@ const handleNumberToRanges = (number: number): string => {
                     {{ first_name }} {{ last_name }}
                 </p>
             </div>
+            <button class="button-icon" @click.prevent="handleLogOut">
+                <LogOutButton color="#072138" />
+            </button>
         </div>
     </header>
 </template>
