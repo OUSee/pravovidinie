@@ -17,7 +17,7 @@ const fetchApi = async () => {
     loading.value = true
     try {
         if (password.value !== '' && email.value !== '') {
-            const response: any = await axios.post(`/api/auth/login`,
+            const response: any = await axios.post(`http://localhost:8001/api/auth/login`,
                 {
                     email: email.value,
                     password: password.value
@@ -25,7 +25,7 @@ const fetchApi = async () => {
             if (response.user && token) {
                 localStorage.setItem('user', JSON.stringify(response.user))
                 token.value = response.user.token
-
+                console.log('resp', response)
             }
             else {
                 console.log(response.message)
