@@ -4,7 +4,7 @@ import EndVideoChatIcon from '../Icons/EndVideoChatIcon.vue'
 import MIcrophoneIcon from '../Icons/MIcrophoneIcon.vue'
 import CameraIcon from '../Icons/CameraIcon.vue'
 import { inject, ref } from 'vue'
-import { useVideChatLogic } from './useVideoChatLogic'
+import { useVideoChatLogic } from './useVideoChatLogic'
 
 const time = '85 минут'
 const pricing = 100
@@ -12,7 +12,7 @@ const current_time = new Date();
 const mute = ref<Boolean>(false)
 const camera = ref<Boolean>(false)
 const enableCall = inject<any>('enableCall')
-const { toggleAudio, toggleVideo, startCall, endCall } = useVideChatLogic();
+const { toggleAudio, toggleVideo, startCall, endCall } = useVideoChatLogic();
 
 const hours = current_time.getHours().toString().padStart(2, '0');
 const minutes = current_time.getMinutes().toString().padStart(2, '0');
