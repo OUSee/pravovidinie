@@ -7,6 +7,8 @@ import { inject } from 'vue'
 
 const refVideo = inject<any>('refVideo');
 const refUserVideo = inject<any>('refUserVideo');
+const isConnecting = inject<Ref<boolean>>('isConnecting')
+
 
 </script>
 
@@ -14,11 +16,11 @@ const refUserVideo = inject<any>('refUserVideo');
     <div class="videochat-window">
         <div class="main-window">
             <video ref="refVideo" src=""></video>
-            <DotSpinner v-if="refVideo?.srcObject === null || refVideo?.srcObject === undefined" />
+            <DotSpinner v-if="isConnecting" />
         </div>
         <div class="mirror">
             <video ref="refUserVideo" src=""></video>
-            <DotSpinner v-if="refUserVideo?.srcObject === null || refUserVideo?.srcObject === undefined" />
+            <DotSpinner v-if="isConnecting" />
         </div>
         <VideoChatBar :checked="true" />
         <!-- <VideoChatLogic_deprecated></VideoChatLogic_deprecated> -->

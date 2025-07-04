@@ -23,8 +23,7 @@ export const useVideChatLogic = () => {
     const API_ACESS_ROUTE = inject<string>('API_ACESS_ROUTE')
     const API_ACESS_ROUTE_WS = inject<string>('API_ACESS_ROUTE_WS')
     const API_CREATE_ROOM = inject<string>('API_CREATE_ROOM')
-
-
+    const isConnecting = inject<Ref<boolean>>('isConnecting')
 
     // WebRTC functions
     const createPeer = (): RTCPeerConnection => {
@@ -90,7 +89,6 @@ export const useVideChatLogic = () => {
         else {
             await getMedia()
         }
-        playSound()
     }
 
     const getCallStatus = () => {
@@ -166,6 +164,15 @@ export const useVideChatLogic = () => {
         isPlaying.value = false
     }
 
+    watchEffect(()=>{
+        if(isConnecting && isConnecting.value === true){
+            playSound()
+        }
+        else if(isConnecting && isConnecting.value === false){
+            stopSound()
+        }
+    })
+
     // Media initialization
     const getMedia = async () => {
         console.log('connecting media')
@@ -218,9 +225,11 @@ export const useVideChatLogic = () => {
                     offer: peerRef.value.localDescription,
                   })
                 );
+                isConnecting ? isConnecting.value = false : null;
             }
             else{
                 console.log('call aborted', 'sw: ', webSocketRef?.value,'userStream: ', userStream.value ,'peerRef', peerRef.value)
+                isConnecting ? isConnecting.value = false : null;
             }
         }
         catch(error){
@@ -246,7 +255,6 @@ export const useVideChatLogic = () => {
         webSocketRef.value.onopen = () => {
             webSocketRef.value?.send(JSON.stringify({ join: true }))
             console.log('ws open', webSocketRef.value)
-            stopSound();
 
             webSocketRef.value?.send(JSON.stringify({ join: true }))     
         }
@@ -315,6 +323,8 @@ export const useVideChatLogic = () => {
             if (roomID && response.data.room_id) {
                 roomID.value = response.data.room_id
                 localStorage.setItem('room', roomID.value)
+                isConnecting ? isConnecting.value = true : null;
+
                 getMedia()
             }
             }

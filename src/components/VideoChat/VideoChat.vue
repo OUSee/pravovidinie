@@ -10,12 +10,14 @@ const refUserVideo = ref<HTMLTextAreaElement | null>(null)
 const webSocketRef = ref<WebSocket | null>(null)
 const enableCall = ref<boolean>(false)
 const messages = ref<Message[]>([]);
+const isConnecting = ref<boolean>(false)
 
 provide('refVideo', refVideo)
 provide('refUserVideo', refUserVideo)
 provide('enableCall', enableCall)
 provide('messages', messages)
 provide('webSocketRef', webSocketRef)
+provide('isConnecting', isConnecting)
 
 
 </script>
