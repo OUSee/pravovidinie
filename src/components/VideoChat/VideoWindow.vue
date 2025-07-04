@@ -2,12 +2,16 @@
 import './VideoChat.scss'
 import VideoChatBar from './VideChatBar.vue'
 import DotSpinner from '../Loaders/DotSpinner.vue'
-import { inject, type Ref } from 'vue'
+import { inject, watch, type Ref } from 'vue'
 // import VideoChatLogic_deprecated from './VideoChatLogic_deprecated.vue';
 
 const refVideo = inject<any>('refVideo');
 const refUserVideo = inject<any>('refUserVideo');
-const isConnecting = inject<Ref<boolean>>('isConnecting')
+const isConnecting = inject<Ref<boolean>>('isConnecting');
+
+watch(refVideo, (refVideo, prevVideo) => {
+    console.log('changed ref source=> ', refVideo.srcObject)
+})
 
 
 </script>

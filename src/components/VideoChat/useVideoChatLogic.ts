@@ -1,4 +1,4 @@
-import { ref, type Ref, watchEffect, inject, onUnmounted, nextTick } from 'vue'
+import { ref, type Ref, watchEffect, inject, onUnmounted, nextTick, watch } from 'vue'
 import axios from "axios";
 import callSound from '../../assets/skype-incoming.mp3'
 
@@ -15,12 +15,10 @@ export const useVideoChatLogic = () => {
     const peerRef = ref<RTCPeerConnection | null>(null)
     const videoEnabled = ref(true)
     const audioEnabled = ref(true)
-    // const callStatus = ref('')
     const callError = ref<string | null>(null)
     const audioPlayer = ref<HTMLAudioElement | null>(null)
     const isPlaying = ref(false)
     const token = inject<Ref<string>>('token')
-    // const API_ACESS_ROUTE = inject<string>('API_ACESS_ROUTE')
     const API_ACESS_ROUTE_WS = inject<string>('API_ACESS_ROUTE_WS')
     const API_CREATE_ROOM = inject<string>('API_CREATE_ROOM')
     const isConnecting = inject<Ref<boolean>>('isConnecting')
@@ -35,7 +33,7 @@ export const useVideoChatLogic = () => {
         username: "dd41ff40517c1c1a921b3a52",
         credential: "x+5Oogy2z2lno+ca"
     }
-]
+    ]
     
 
     const addIceCandidate = async (candidate: RTCIceCandidate) => {
@@ -45,20 +43,20 @@ export const useVideoChatLogic = () => {
         }
 
         if (!isRemoteDescriptionSet.value) {
-            console.log('Buffering ICE candidate - remote description not set yet');
+            // console.log('Buffering ICE candidate - remote description not set yet');
             pendingIceCandidates.value.push(candidate);
             return;
         }
 
         try {
             await peerRef.value.addIceCandidate(candidate);
-            console.log('Successfully added ICE candidate');
+            // console.log('Successfully added ICE candidate');
         } catch (error) {
             console.error('Error adding ICE candidate:', error);
         }
     };
 
-    // Update when remote description is set
+
     const setRemoteDescription = async (description: RTCSessionDescriptionInit) => {
         if (!peerRef.value) return;
 
@@ -80,64 +78,87 @@ export const useVideoChatLogic = () => {
     };
 
     // WebRTC functions
-    const createPeer = (): RTCPeerConnection => {
-        const peer = new RTCPeerConnection({
-            iceServers: ICE_SERVERS
-        })
+const createPeer = (): RTCPeerConnection => {
+    const peer = new RTCPeerConnection({
+        iceServers: ICE_SERVERS
+    })
 
-        peer.onnegotiationneeded = handleNegotiationNeeded;
+    if (userStream.value) {
+        // Явно добавляем аудио и видео транскодеры в фиксированном порядке
 
+        const videoTrack = userStream.value.getVideoTracks()[0];
+        const audioTrack = userStream.value.getAudioTracks()[0];
 
-        pendingIceCandidates.value = [];
-        isRemoteDescriptionSet.value = false;
-
-        if(!webSocketRef || !webSocketRef.value){
-            console.error('no websocket connection')
+        if (videoTrack) {
+            peer.addTransceiver(videoTrack, { direction: 'sendrecv' });
         }
+        if (audioTrack) {
+            peer.addTransceiver(audioTrack, { direction: 'sendrecv' });
+        }
+    }
 
-        peer.onicecandidate = (e) => {
-            if (e.candidate) {
-                console.log('New ICE candidate generated');
-                webSocketRef?.value?.send(JSON.stringify({ iceCandidate: e.candidate }));
-            } else {
-                console.log('ICE gathering complete');
-            }
-        };
+    peer.onnegotiationneeded = handleNegotiationNeeded;
 
-        peer.ontrack = (e) => {
-        if (e.streams && e.streams.length > 0) {
-            console.log('Received remote stream:', e.streams[0]);
-            partnerVideo.value = e.streams[0];
-            
-            if(!refVideo){console.log('no refvideo'); return}
-            // Ensure the video element is properly updated
-            nextTick(() => {
-                if (refVideo.value && partnerVideo.value) {
-                    refVideo.value.srcObject = partnerVideo.value;
-                    refVideo.value.play().catch(e => console.error('Video play error:', e));
-                }
-            });
+    pendingIceCandidates.value = [];
+    isRemoteDescriptionSet.value = false;
+
+    if(!webSocketRef || !webSocketRef.value){
+        console.error('no websocket connection')
+    }
+
+    peer.onicecandidate = (e) => {
+        if (e.candidate) {
+            // console.log('New ICE candidate generated');
+            webSocketRef?.value?.send(JSON.stringify({ iceCandidate: e.candidate }));
+        } else {
+            console.log('ICE gathering complete');
         }
     };
 
-        return peer;
-    }
+    peer.ontrack = (e) => {
+        if (e.streams && e.streams.length > 0) {
+            console.log('Received remote stream:', e.streams[0]);
+            partnerVideo.value = e.streams[0];
+            if(refVideo){
+                refVideo.value.srcObject = partnerVideo.value;
+            }
+        }
+    };
+
+    return peer;
+}
 
     const handleNegotiationNeeded = async () => {
-    console.log('Negotiation needed event fired');
     if (!peerRef.value || !webSocketRef?.value || isNegotiating.value) return;
     
     isNegotiating.value = true;
     try {
-        const offer = await peerRef.value.createOffer();
-        await peerRef.value.setLocalDescription(offer);
-        console.log('sending offer', peerRef.value.localDescription);
+        // Add this check to prevent renegotiation with existing tracks
+        if (peerRef.value.getSenders().length === 0) {
+            console.warn('Negotiation needed but no tracks added');
+            return;
+        }
+
+        const offer = await peerRef.value.createOffer({
+            // This helps maintain consistent SDP
+            offerToReceiveAudio: true,
+            offerToReceiveVideo: true
+        });
+        
+        // Important error handling for setLocalDescription
+        try {
+            await peerRef.value.setLocalDescription(offer);
+        } catch (e) {
+            console.error("setLocalDescription failed:", e);
+            throw e; // Re-throw to be caught by outer try/catch
+        }
+
         webSocketRef.value.send(JSON.stringify({ 
             offer: peerRef.value.localDescription 
         }));
     } catch (e) {
-        console.error("Offer creation error:", e);
-        // Consider cleanup or retry logic here
+        console.error("Negotiation failed:", e);
+        // Consider recovery logic here
     } finally {
         isNegotiating.value = false;
     }
@@ -189,8 +210,11 @@ export const useVideoChatLogic = () => {
     const getCallStatus = () => {
         return {
             isActive: !!peerRef.value,
+            ws_open: !!webSocketRef?.value,
             videoEnabled: videoEnabled.value,
             audioEnabled: audioEnabled.value,
+            userStream: !!userStream.value,
+            partnerVideo: !!partnerVideo.value,
             error: callError.value
         }
     }
@@ -258,6 +282,14 @@ export const useVideoChatLogic = () => {
         webSocketRef.value.close();
         webSocketRef.value = null;
     }
+
+    pendingIceCandidates.value = [];
+    isRemoteDescriptionSet.value = false;
+
+    roomID ? roomID.value = '' : null;
+    localStorage.removeItem('room')
+    // refUserVideo?.value.pause()
+    // refVideo?.value.pause()
 };
 
 
@@ -281,10 +313,10 @@ export const useVideoChatLogic = () => {
 
     watchEffect(()=>{
         if(isConnecting && isConnecting.value === true){
-            playSound()
+            // playSound()
         }
         else if(isConnecting && isConnecting.value === false){
-            stopSound()
+            // stopSound()
         }
     })
 
@@ -297,7 +329,7 @@ export const useVideoChatLogic = () => {
                 video: videoEnabled.value
             })
 
-            console.log('stream get', stream)
+            console.log('userstream', stream)
 
             userStream.value = stream
             yourVideo.value = stream
@@ -305,12 +337,12 @@ export const useVideoChatLogic = () => {
             if (refUserVideo && refUserVideo.value) {
                 console.log('settting user stream')
                 refUserVideo.value.srcObject = stream
+
+                await refUserVideo.value.play().catch((e:any) => console.warn('Ошибка воспроизведения локального видео:', e))
             }
             else{
                 console.log('refUserVideo is undef')
             }
-
-           
             
             setupWebSocket()
             
@@ -330,52 +362,28 @@ export const useVideoChatLogic = () => {
     }
 
     const callUser = async () => {
-        try {
-            if(webSocketRef && userStream.value && webSocketRef.value) {
-                peerRef.value = createPeer();
-                userStream.value.getTracks().forEach(track => peerRef.value?.addTrack(track, userStream.value!))
+         try {
+            if (webSocketRef?.value && userStream.value) {
+                // Don't create new peer if one exists
+                if (!peerRef.value) {
+                    peerRef.value = createPeer();
+                }
 
-                const offer = await peerRef.value.createOffer();
-                await peerRef.value.setLocalDescription(offer);
+                // Let the onnegotiationneeded handler take care of the offer
+                // Just ensure tracks are added
+               
+                userStream.value.getTracks().forEach(track => {
+                    peerRef.value?.addTrack(track, userStream.value!);
+                });
+                
 
-                webSocketRef.value.send(
-                  JSON.stringify({
-                    offer: peerRef.value.localDescription,
-                  })
-                );
-                if (isConnecting) isConnecting.value = false;
-            } else {
-                console.log('call aborted', 'sw: ', webSocketRef?.value,'userStream: ', userStream.value ,'peerRef', peerRef.value)
                 if (isConnecting) isConnecting.value = false;
             }
         } catch(error) {
-            console.log(error)
+            console.error('Call setup failed:', error);
+            cleanup();
         }
     }
-
-
-    // const callUser = () => {
-    //     try{
-    //         if(webSocketRef && userStream.value && webSocketRef.value) {
-    //             peerRef.value = createPeer();
-    //             userStream.value.getTracks().forEach(track => peerRef.value?.addTrack(track, userStream.value!))
-                
-    //             webSocketRef.value.send(
-    //               JSON.stringify({
-    //                 offer: peerRef.value.localDescription,
-    //               })
-    //             );
-    //             isConnecting ? isConnecting.value = false : null;
-    //         }
-    //         else{
-    //             console.log('call aborted', 'sw: ', webSocketRef?.value,'userStream: ', userStream.value ,'peerRef', peerRef.value)
-    //             isConnecting ? isConnecting.value = false : null;
-    //         }
-    //     }
-    //     catch(error){
-    //         console.log(error)
-    //     }
-    // }
 
     const setupWebSocket = () => {
         if(!roomID || !webSocketRef){
@@ -395,7 +403,6 @@ export const useVideoChatLogic = () => {
         webSocketRef.value.onopen = () => {
             webSocketRef.value?.send(JSON.stringify({ join: true }))
             console.log('ws open', webSocketRef.value)
-
         }
 
         // setInterval(() => {
@@ -409,7 +416,7 @@ export const useVideoChatLogic = () => {
             console.log('ws message', message)
 
             if(message.status === 1){
-                console.log('message get')
+                // console.log('message get')
                 callUser()
             }
 
@@ -429,7 +436,7 @@ export const useVideoChatLogic = () => {
                 if (signalingState === 'have-local-offer') {
                     try {
                         await peerRef.value.setRemoteDescription(new RTCSessionDescription(message.answer));
-                        console.log('Successfully set remote answer');
+                        // console.log('Successfully set remote answer');
                     } catch (error) {
                         console.error('Failed to set remote answer:', error);
                         cleanup();
@@ -450,7 +457,7 @@ export const useVideoChatLogic = () => {
             )
         }
 
-        webSocketRef.value.onclose = () => {console.log('ws closed');cleanup()}
+        webSocketRef.value.onclose = () => {console.log('ws closed'); cleanup()}
         webSocketRef.value.onerror = () => {
             callError.value = "Connection error"
             cleanup()
@@ -479,7 +486,7 @@ export const useVideoChatLogic = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             )
 
-            console.log('res', response.data)
+            console.log('created', response.data)
 
             if (roomID && response.data.room_id) {
                 roomID.value = response.data.room_id
@@ -501,25 +508,16 @@ export const useVideoChatLogic = () => {
     }
 
     // debug
-
-    watchEffect(() => {
-        if (refVideo && partnerVideo.value && refVideo.value) {
-            console.log('Partner video updated - checking streams:');
-            console.log('Tracks:', partnerVideo.value.getTracks());
-
-            refVideo.value.srcObject = partnerVideo.value;
-            refVideo.value.play().catch(e => console.error('Playback error:', e));
-        }
-    });
+   
 
     // Add this to check WebRTC connection state
     const checkConnectionState = () => {
         if (peerRef.value) {
             console.log('Current connection state:', peerRef.value.connectionState);
-            console.log('ICE gathering state:', peerRef.value.iceGatheringState);
-            console.log('Signaling state:', peerRef.value.signalingState);
-            console.log('Senders:', peerRef.value.getSenders());
-            console.log('Receivers:', peerRef.value.getReceivers());
+            // console.log('ICE gathering state:', peerRef.value.iceGatheringState);
+            // console.log('Signaling state:', peerRef.value.signalingState);
+            // console.log('Senders:', peerRef.value.getSenders());
+            // console.log('Receivers:', peerRef.value.getReceivers());
         }
     };
 
@@ -535,21 +533,51 @@ export const useVideoChatLogic = () => {
         }
     })
 
-    watchEffect(() => {
-        if (partnerVideo.value && refVideo && refVideo.value ) {
-            console.log('new partnerVideo', partnerVideo.value)
+    watch(partnerVideo, (prevValue, nextValue) => {
+        if(nextValue && refVideo){
             refVideo.value.srcObject = partnerVideo.value
-            refVideo.value.play();
+            refVideo.value.play()
         }
     })
 
-    watchEffect(() => {
-        if (refUserVideo && yourVideo.value && refUserVideo.value) {
-            refUserVideo.value.srcObject = yourVideo.value
-            refUserVideo.value.muted = true;
-            refUserVideo.value.play();
+    // Update partner video handling
+    watchEffect(async () => {
+        if (refVideo?.value && partnerVideo.value) {
+            await nextTick();
+            console.log('refVideo before', refVideo.value)
+            refVideo.value.srcObject = partnerVideo.value;
+            console.log('refVideo after', refVideo.value)
+            try {
+                await refVideo.value.play();
+            } catch (e) {
+                console.error('Error playing partner video:', e);
+            }
         }
-    })
+    });
+
+    // Handle user video
+    watchEffect(() => {
+        if (refUserVideo?.value && yourVideo.value) {
+            // Only update if stream has changed
+            if (refUserVideo.value.srcObject !== yourVideo.value) {
+                refUserVideo.value.srcObject = yourVideo.value;
+            }
+            
+            refUserVideo.value.muted = true;
+            
+            // Handle play with error catching
+            const playPromise = refUserVideo.value.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(e => {
+                    if (e.name === 'AbortError') {
+                        console.log('Self video playback aborted');
+                    } else {
+                        console.error('Self video play error:', e);
+                    }
+                });
+            }
+        }
+    });
 
     // Cleanup on unmount
     onUnmounted(() => {
