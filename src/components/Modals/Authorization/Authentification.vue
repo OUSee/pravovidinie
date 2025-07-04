@@ -20,7 +20,7 @@ const fetchApi = async () => {
     loading.value = true
     try {
         if (password.value !== '' && email.value !== '') {
-            // const response: any = await fetch(API_ACESS_ROUTE + '/api/api/auth/login', {
+            // const response: any = await fetch(API_ACESS_ROUTE + '/api/auth/login', {
             //     method: 'POST', // HTTP method
             //     headers: {
             //         'Content-Type': 'application/json' // Sending JSON data
@@ -30,17 +30,17 @@ const fetchApi = async () => {
             //         password: password.value
             //     })
             // });
-            const response: any = await axios.post(API_ACESS_ROUTE + '/api/api/auth/login',
+            const response: any = await axios.post(API_ACESS_ROUTE + '/api/auth/login',
                 {
                     email: email.value,
                     password: password.value
                 }
             )
-            console.log('resp', response)
-            if (user && response.user && token) {
-                localStorage.setItem('user', JSON.stringify(response.user))
-                user.value = response.user
-                token.value = response.user.token
+            console.log('resp', response.data)
+            if (user && response.data.user && token) {
+                localStorage.setItem('user', JSON.stringify(response.data.user))
+                user.value = response.data.user
+                token.value = response.data.user.token
             }
             else {
                 console.log('resp message', response.message)

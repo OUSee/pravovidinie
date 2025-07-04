@@ -10,7 +10,7 @@ export const useVideChatLogic = () => {
     const webSocketRef = inject<Ref<WebSocket | null>>('webSocketRef')
     const yourVideo = ref<MediaStream | null>(null)
     const partnerVideo = ref<MediaStream | null>(null)
-    const roomID = inject<Ref<string>>('')
+    const roomID = inject<Ref<string>>('roomID')
     const userStream = ref<MediaStream | null>(null)
     const peerRef = ref<RTCPeerConnection | null>(null)
     const videoEnabled = ref(true)
@@ -22,6 +22,7 @@ export const useVideChatLogic = () => {
     const token = inject<Ref<string>>('token')
     const API_ACESS_ROUTE = inject<string>('API_ACESS_ROUTE')
     const API_ACESS_ROUTE_WS = inject<string>('API_ACESS_ROUTE_WS')
+    const API_CREATE_ROOM = inject<string>('API_CREATE_ROOM')
 
 
 
@@ -179,10 +180,17 @@ export const useVideChatLogic = () => {
 
     const setupWebSocket = () => {
         if(!roomID || !webSocketRef){
-            console.error('room id not provided or no websocket')
+            console.error('room id not provided or no websocket, room: ', roomID, 'websocket: ', webSocketRef)
             return
         }
+
+       try{ 
         webSocketRef.value = new WebSocket(API_ACESS_ROUTE_WS + `/join?roomID=${roomID.value}&token=${token}`)
+       }
+       catch(err){
+        console.error(err)
+        return
+       }
 
         webSocketRef.value.onopen = () => {
             webSocketRef.value?.send(JSON.stringify({ join: true }))
@@ -216,8 +224,12 @@ export const useVideChatLogic = () => {
     // Room management
     const createRoom = async () => {
         try {
+            const user = localStorage.getItem('user')
+            if(user){
+                const {token} = JSON.parse(user)
+            
             // http://api.xn--80aeaifasc8bfim.xn--p1ai/api/create
-            const response = await axios.post(API_ACESS_ROUTE + `/api/create`,
+            const response = await axios.post(API_CREATE_ROOM + `/create`,
                 { profile: 'test' },
                 { headers: { Authorization: `Bearer ${token}` } }
             )
@@ -226,6 +238,10 @@ export const useVideChatLogic = () => {
                 roomID.value = response.data.room_id
                 localStorage.setItem('room', roomID.value)
                 getMedia()
+            }
+            }
+            else{
+                console.error('failed to get token')
             }
         } catch (error) {
             console.error("Room creation error:", error)
