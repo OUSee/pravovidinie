@@ -2,37 +2,17 @@
 import './VideoChat.scss'
 import VideoChatBar from './VideChatBar.vue'
 import DotSpinner from '../Loaders/DotSpinner.vue'
-import { inject, watchEffect, ref } from 'vue'
+import { inject } from 'vue'
+// import VideoChatLogic_deprecated from './VideoChatLogic_deprecated.vue';
 
 const refVideo = inject<any>('refVideo');
 const refUserVideo = inject<any>('refUserVideo');
 
-
-// test
-const testStream = ref<MediaStream | null>(null)
-
-const getMedia = async () => {
-    try {
-        testStream.value = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-    } catch (e) {
-        console.error('Error accessing media devices.', e)
-    }
-}
-
-getMedia()
-
-watchEffect(() => {
-    if (refUserVideo && testStream.value !== null) {
-        refUserVideo.value.srcObject = testStream.value;
-        refUserVideo.value.muted = true;
-        refUserVideo.value.play()
-    }
-},)
 </script>
 
 <template>
     <div class="videochat-window">
-        <div class="main-window" @click="getMedia">
+        <div class="main-window">
             <video ref="refVideo" src=""></video>
             <DotSpinner v-if="refVideo?.srcObject === null || refVideo?.srcObject === undefined" />
         </div>
@@ -41,5 +21,6 @@ watchEffect(() => {
             <DotSpinner v-if="refUserVideo?.srcObject === null || refUserVideo?.srcObject === undefined" />
         </div>
         <VideoChatBar :checked="true" />
+        <!-- <VideoChatLogic_deprecated></VideoChatLogic_deprecated> -->
     </div>
 </template>

@@ -45,8 +45,8 @@ export const useVideChatLogic = () => {
         }
 
         peer.onnegotiationneeded = () => handleNegotiationNeeded()
-        peer.onicecandidate = (e) => e.candidate && webSocketRef.value?.send(JSON.stringify({ iceCandidate: e.candidate }))
-        peer.ontrack = (e) => partnerVideo.value = e.streams[0]
+        peer.onicecandidate = (e) => {console.log('sending ice');e.candidate && webSocketRef.value?.send(JSON.stringify({ iceCandidate: e.candidate }))}
+        peer.ontrack = (e) => {console.log('track event e.streams', e.streams);partnerVideo.value = e.streams[0]}
 
         return peer
     }
@@ -57,6 +57,7 @@ export const useVideChatLogic = () => {
         try {
             const offer = await peerRef.value.createOffer()
             await peerRef.value.setLocalDescription(offer)
+            console.log('sending offer ', peerRef.value.localDescription)
             webSocketRef.value?.send(JSON.stringify({ offer: peerRef.value.localDescription }))
         } catch (e) {
             console.error("Offer creation error:", e)
@@ -71,8 +72,14 @@ export const useVideChatLogic = () => {
         await peerRef.value.setRemoteDescription(new RTCSessionDescription(offer))
         userStream.value.getTracks().forEach(track => peerRef.value?.addTrack(track, userStream.value!))
 
+        peerRef.value.ontrack = (e) => {
+         partnerVideo.value = e.streams[0];
+         console.log('Remote stream received', e.streams[0]);
+        }
+
         const answer = await peerRef.value.createAnswer()
         await peerRef.value.setLocalDescription(answer)
+        console.log('sending answer', peerRef.value.localDescription)
         webSocketRef.value?.send(JSON.stringify({ answer: peerRef.value.localDescription }))
     }
 
@@ -95,7 +102,9 @@ export const useVideChatLogic = () => {
         }
     }
 
-
+    watchEffect(()=>{
+        console.log('status: ', getCallStatus())
+    })
 
     // Media control functions
     const toggleAudio = () => {
@@ -119,6 +128,7 @@ export const useVideChatLogic = () => {
     // Call control functions
     const endCall = () => {
         if(!webSocketRef) return
+        console.log('close websocket')
         webSocketRef.value?.send(JSON.stringify({ close: true, reason: "user_close" }))
         cleanup()
     }
@@ -158,47 +168,104 @@ export const useVideChatLogic = () => {
 
     // Media initialization
     const getMedia = async () => {
+        console.log('connecting media')
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: true,
                 video: videoEnabled.value
             })
 
+            console.log('stream get', stream)
+
             userStream.value = stream
             yourVideo.value = stream
 
-            if (refUserVideo) {
+            if (refUserVideo && refUserVideo.value) {
+                console.log('settting user stream')
                 refUserVideo.value.srcObject = stream
             }
+            else{
+                console.log('refUserVideo is undef')
+            }
 
+           
+            
             setupWebSocket()
+            
         } catch (error) {
             console.error("Media access error:", error)
             callError.value = "Media access denied"
         }
     }
 
+    const createSocket = () => {
+        if(webSocketRef && !webSocketRef.value && roomID){
+            webSocketRef.value = new WebSocket(API_ACESS_ROUTE_WS + `/join?roomID=${roomID.value}&token=${token}`)
+        }
+        else{
+            console.log('websocket is set up already')
+        }
+    }
+
+    const callUser = () => {
+        try{
+            if(webSocketRef && userStream.value && webSocketRef.value) {
+                peerRef.value = createPeer();
+                userStream.value.getTracks().forEach(track => peerRef.value?.addTrack(track, userStream.value!))
+                
+                webSocketRef.value.send(
+                  JSON.stringify({
+                    offer: peerRef.value.localDescription,
+                  })
+                );
+            }
+            else{
+                console.log('call aborted', 'sw: ', webSocketRef?.value,'userStream: ', userStream.value ,'peerRef', peerRef.value)
+            }
+        }
+        catch(error){
+            console.log(error)
+        }
+    }
+
     const setupWebSocket = () => {
         if(!roomID || !webSocketRef){
-            console.error('room id not provided or no websocket, room: ', roomID, 'websocket: ', webSocketRef)
+            console.error('room id not provided or no websocket, room: ', roomID, 'websocket: ', webSocketRef?.value)
             return
         }
 
        try{ 
-        webSocketRef.value = new WebSocket(API_ACESS_ROUTE_WS + `/join?roomID=${roomID.value}&token=${token}`)
+            createSocket()
        }
        catch(err){
         console.error(err)
         return
        }
 
+       if(webSocketRef && webSocketRef.value){
         webSocketRef.value.onopen = () => {
             webSocketRef.value?.send(JSON.stringify({ join: true }))
+            console.log('ws open', webSocketRef.value)
             stopSound();
+
+            webSocketRef.value?.send(JSON.stringify({ join: true }))     
         }
+
+        // setInterval(() => {
+        //     if (webSocketRef.value && webSocketRef.value.readyState === WebSocket.OPEN) {
+        //       webSocketRef.value.send(JSON.stringify({ type: "ping" }));
+        //     }
+        // }, 5000);
 
         webSocketRef.value.onmessage = (e) => {
             const message = JSON.parse(e.data)
+
+            console.log('ws message', message)
+
+            if(message.status === 1){
+                console.log('message get')
+                callUser()
+            }
 
             if (message.offer) {
                 handleOffer(message.offer)
@@ -209,14 +276,17 @@ export const useVideChatLogic = () => {
             } else if (message.close) {
                 callError.value = "Call ended"
                 cleanup()
-            }
+            } else if (message.join) (
+                callUser()
+            )
         }
 
-        webSocketRef.value.onclose = cleanup
+        webSocketRef.value.onclose = () => {console.log('ws closed');cleanup()}
         webSocketRef.value.onerror = () => {
             callError.value = "Connection error"
             cleanup()
         }
+       } 
     }
 
 
@@ -225,6 +295,12 @@ export const useVideChatLogic = () => {
     const createRoom = async () => {
         try {
             const user = localStorage.getItem('user')
+            const room = localStorage.getItem('room')
+            if(room && roomID){
+                roomID.value = room
+                getMedia()
+                return;
+            }
             if(user){
                 const {token} = JSON.parse(user)
             
@@ -233,6 +309,8 @@ export const useVideChatLogic = () => {
                 { profile: 'test' },
                 { headers: { Authorization: `Bearer ${token}` } }
             )
+
+            console.log('res', response.data)
 
             if (roomID && response.data.room_id) {
                 roomID.value = response.data.room_id
@@ -262,13 +340,17 @@ export const useVideChatLogic = () => {
 
     watchEffect(() => {
         if (partnerVideo.value && refVideo && refVideo.value ) {
+            console.log('new partnerVideo', partnerVideo.value)
             refVideo.value.srcObject = partnerVideo.value
+            refVideo.value.play();
         }
     })
 
     watchEffect(() => {
         if (refUserVideo && yourVideo.value && refUserVideo.value) {
             refUserVideo.value.srcObject = yourVideo.value
+            refUserVideo.value.muted = true;
+            refUserVideo.value.play();
         }
     })
 
