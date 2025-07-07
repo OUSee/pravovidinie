@@ -9,10 +9,6 @@ const refVideo = inject<any>('refVideo');
 const refUserVideo = inject<any>('refUserVideo');
 const isConnecting = inject<Ref<boolean>>('isConnecting');
 
-watch(refVideo, (refVideo, prevVideo) => {
-    console.log('changed ref source=> ', refVideo.srcObject)
-})
-
 
 </script>
 

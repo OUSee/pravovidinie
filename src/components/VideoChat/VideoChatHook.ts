@@ -3,7 +3,7 @@ import axios from "axios";
 import callSound from '../../assets/skype-incoming.mp3'
 
 
-export const useVideouChat = () => {
+export const useVideoChat = () => {
     // refs
     const refVideo = inject<Ref<HTMLVideoElement>>('refVideo')
     const refUserVideo = inject<Ref<HTMLVideoElement>>('refUserVideo')
@@ -533,7 +533,5 @@ export const useVideouChat = () => {
         toggleAudio,
         toggleVideo,
         getConnectionStatus
-    }
-
-    
+    } 
 }
