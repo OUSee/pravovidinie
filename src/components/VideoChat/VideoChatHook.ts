@@ -1,4 +1,4 @@
-import { ref, type Ref, watchEffect, inject, watch } from 'vue'
+import { ref, type Ref, watchEffect, inject, watch, onUnmounted } from 'vue'
 import axios from "axios";
 import callSound from '../../assets/skype-incoming.mp3'
 
@@ -26,6 +26,16 @@ export const useVideouChat = () => {
     const API_CREATE_ROOM = inject<string>('API_CREATE_ROOM')
     const isConnecting = inject<Ref<boolean>>('isConnecting')
     const pingInterval = ref<any>();
+
+    // refs and consts for reconnect logic 
+    const MAX_RECONNECT_ATTEMPTS = 5;
+    const RECONNECT_DELAY_BASE = 2000; 
+    const reconnectAttempts = ref(0);
+    const isReconnecting = ref(false);
+    const isCallActive = ref(false);
+    const iceRestartTimer = ref<any>(null);
+    const reconnectTimer = ref<any>(null)
+    const connectionStatus = ref<'connected' | 'connecting' | 'reconnecting' | 'disconnected'>('disconnected')
 
     const ICE_SERVERS = [
         {
@@ -79,8 +89,8 @@ export const useVideouChat = () => {
         return null;
         }
         const constraints = {
-        audio: true,
-        video: videoEnabled ? { deviceId: cameras[0].deviceId } : false,
+        audio: audioEnabled.value,
+        video: videoEnabled.value ? { deviceId: cameras[0].deviceId } : false,
         };
         return navigator.mediaDevices
         .getUserMedia(constraints)
@@ -95,9 +105,10 @@ export const useVideouChat = () => {
 
     const getMedia = async () => {
         try {
-            openCamera().then((stream)=>{
-                
-            })
+            const stream = await openCamera();
+            userStream.value = stream;
+            if(!stream) throw new Error('camera access denied')
+            return stream
         } catch (error) {
             console.error("Media access error:", error)
             callError.value = "Media access denied"
@@ -121,7 +132,6 @@ export const useVideouChat = () => {
     };
 
     const handleIceCandidateEvent = (e: any) => {
-    // console.log("Found Ice Candidate");
         if (e.candidate && webSocketRef) {
             webSocketRef.value?.send(JSON.stringify({ iceCandidate: e.candidate }));
         }
@@ -136,18 +146,24 @@ export const useVideouChat = () => {
 
         await peerRef.value.setRemoteDescription(
             new RTCSessionDescription(offer)
-        )
+        ).catch(e => {
+            console.error("remote description isn't set cause: ", e)
+        })
 
         if (userStream.value) {
-            const videoTrack = userStream.value.getVideoTracks()[0];
-            const audioTrack = userStream.value.getAudioTracks()[0];
+            // const videoTrack = userStream.value.getVideoTracks()[0];
+            // const audioTrack = userStream.value.getAudioTracks()[0];
 
-            if (videoTrack) {
-                peerRef.value.addTransceiver(videoTrack, { direction: 'sendrecv' });
-            }
-            if (audioTrack) {
-                peerRef.value.addTransceiver(audioTrack, { direction: 'sendrecv' });
-            }
+            // if (videoTrack) {
+            //     peerRef.value.addTransceiver(videoTrack, { direction: 'sendrecv' });
+            // }
+            // if (audioTrack) {
+            //     peerRef.value.addTransceiver(audioTrack, { direction: 'sendrecv' });
+            // }
+
+            userStream.value.getTracks().forEach(track => {
+              peerRef.value!.addTrack(track, userStream.value!);
+            });
         }
 
         const answer = await peerRef.value.createAnswer();
@@ -171,6 +187,29 @@ export const useVideouChat = () => {
         peer.onnegotiationneeded = handleNegotiationNeeded;
         peer.onicecandidate = handleIceCandidateEvent;
 
+        peer.onconnectionstatechange =() => {
+            if (!peerRef.value) return;  
+            
+            console.log(`ICE state: ${peerRef.value.iceConnectionState}`);
+
+            switch (peerRef.value.iceConnectionState) {
+              case 'disconnected':
+              case 'failed':
+                if (!isReconnecting.value) {
+                  isReconnecting.value = true;
+                  iceRestartTimer.value = setTimeout(() => {
+                    restartIce();
+                    isReconnecting.value = false;
+                  }, 3000);
+                }
+                break;
+              case 'connected':
+                isReconnecting.value = false;
+                clearTimeout(iceRestartTimer.value);
+                break;
+            }
+        }
+
 
         return peer;
     }
@@ -178,7 +217,13 @@ export const useVideouChat = () => {
     const setupConnection = () => {
         if(webSocketRef && !webSocketRef.value && roomID){
             try{
+                connectionStatus.value = 'connecting'
                 webSocketRef.value = new WebSocket(API_ACESS_ROUTE_WS + `/join?roomID=${roomID.value}&token=${token?.value}`)
+                // - // - Instead of:
+                // `/join?token=${token}`
+                // - // - Use:
+                // const ws = new WebSocket(url);
+                // ws.onopen = () => ws.send(JSON.stringify({ token: token.value }));
             }catch(err){
                 console.error('error setting websocket', err)
             }
@@ -194,15 +239,19 @@ export const useVideouChat = () => {
 
         if(userStream && userStream.value){
             if (userStream.value) {
-                const videoTrack = userStream.value.getVideoTracks()[0];
-                const audioTrack = userStream.value.getAudioTracks()[0];
+                // const videoTrack = userStream.value.getVideoTracks()[0];
+                // const audioTrack = userStream.value.getAudioTracks()[0];
                 
-                if (videoTrack) {
-                    peerRef.value.addTransceiver(videoTrack, { direction: 'sendrecv' });
-                }
-                if (audioTrack) {
-                    peerRef.value.addTransceiver(audioTrack, { direction: 'sendrecv' });
-                }
+                // if (videoTrack) {
+                //     peerRef.value.addTransceiver(videoTrack, { direction: 'sendrecv' });
+                // }
+                // if (audioTrack) {
+                //     peerRef.value.addTransceiver(audioTrack, { direction: 'sendrecv' });
+                // }
+
+                userStream.value.getTracks().forEach(track => {
+                  peerRef.value!.addTrack(track, userStream.value!);
+                });    
             }
 
             // Обновленный поток отправляется после изменения состояния видео
@@ -219,6 +268,7 @@ export const useVideouChat = () => {
         if(webSocketRef && webSocketRef.value){
         webSocketRef.value.onopen = () => {
             webSocketRef.value?.send(JSON.stringify({ join: true }))
+            reconnectAttempts.value = 0;
             console.log('ws open join send', webSocketRef.value)
             pingInterval.value = setInterval(() => {
               if (webSocketRef.value && webSocketRef.value.readyState === WebSocket.OPEN) {
@@ -242,6 +292,7 @@ export const useVideouChat = () => {
                     webSocketRef && webSocketRef.value && webSocketRef.value.send(
                         JSON.stringify({ type: "video_status", status: videoEnabled })
                     );
+                    connectionStatus.value = 'connected'
                 }
                 else(
                     console.error('error processing answer no peer connection')
@@ -259,13 +310,23 @@ export const useVideouChat = () => {
             }
         }
 
-        webSocketRef.value.onclose = () => { clearInterval(pingInterval.value) }
-        webSocketRef.value.onerror = (e) => {callError.value = "Connection error"; console.error('ERROR WS: ', e); clearInterval(pingInterval.value)}
+        webSocketRef.value.onclose = (e) => { 
+            console.log('WebSocket closed:', e.code, e.reason);
+            if (e.code !== 1000) { // 1000 = normal closure
+              handleWebsocketReconnect();
+            }
+        }
+        webSocketRef.value.onerror = (e) => {
+            callError.value = "Connection error"; 
+            console.error('ERROR WS: ', e); 
+            handleWebsocketReconnect();
+        }
        } 
     }
 
-    const initCall = () => {
-        getMedia();
+    const initCall = async () => {
+        await getMedia();
+        handleVideoStream();
         setupConnection();
         websocketHandler();
     }
@@ -276,9 +337,8 @@ export const useVideouChat = () => {
             const room = localStorage.getItem('room')
             if(room && roomID){
                 roomID.value = room
-                return;
             }
-            if(user){
+            else if(user){
                 const {token} = JSON.parse(user)
             
             // http://api.xn--80aeaifasc8bfim.xn--p1ai/api/create
@@ -292,12 +352,13 @@ export const useVideouChat = () => {
                 localStorage.setItem('room', roomID.value)
                 isConnecting ? isConnecting.value = true : null;
 
-                initCall()
+                
             }
             }
             else{
                 console.error('failed to get token')
             }
+            initCall()
         } catch (error) {
             console.error("Room creation error:", error)
             callError.value = "Failed to create room"
@@ -313,13 +374,11 @@ export const useVideouChat = () => {
                 console.log(`Track ${track.kind} enabled:`, track.enabled);
                 track.enabled = true;
             });
-            refUserVideo && refUserVideo.value 
-            ? () => {
-                    refUserVideo.value.srcObject = userStream.value; 
-                    refUserVideo.value.muted = true; 
-                    refUserVideo.value.play()
-                } 
-            : null;    
+            if(refUserVideo && refUserVideo.value ){
+                refUserVideo.value.srcObject = userStream.value; 
+                refUserVideo.value.muted = true; 
+                refUserVideo.value.play().catch(console.error)
+            }    
         }
     };
 
@@ -353,7 +412,7 @@ export const useVideouChat = () => {
             console.log('new partner stream =', value)
             refVideo.value.srcObject = value;
             refVideo.value.muted = true // just in case
-            refVideo.value.play()
+            refVideo.value.play().catch(e => console.error('play() failed cause: ', e))
         }
     })
 
@@ -375,21 +434,105 @@ export const useVideouChat = () => {
     }
 
     const endCall = (reason: string) => {
-        webSocketRef && webSocketRef.value && webSocketRef.value.send(JSON.stringify({ close: true, reason }));
+        isCallActive.value = false;
+        clearInterval(pingInterval.value);
+        clearTimeout(iceRestartTimer.value);
+        clearTimeout(reconnectTimer.value);
+        connectionStatus.value = 'disconnected';
+
+        if (peerRef.value) {
+          peerRef.value.close();
+          peerRef.value = null;
+        }
+        if (userStream.value) {
+          userStream.value.getTracks().forEach(track => track.stop());
+        }
+        if (webSocketRef?.value) {
+            if(webSocketRef.value.readyState === WebSocket.OPEN){
+                webSocketRef.value.send(JSON.stringify({ close: true, reason }));
+            }
+          webSocketRef.value.close();
+          webSocketRef.value = null;
+        }
+
         partnerStream.value = null;
-        peerRef.value = null;
+
+        // webSocketRef && webSocketRef.value && webSocketRef.value.send(JSON.stringify({ close: true, reason }));
+        // partnerStream.value = null;
+        // peerRef.value = null;
+        console.log('call ended reason: ', reason)
     }
 
     const startCall = () => {
+        isCallActive.value = true;
+        reconnectAttempts.value = 0;
+        connectionStatus.value = 'connecting'
         playSound()
         createRoom()
     }
+
+    // additional reconnect
+    const restartIce = async () => {
+        if (!peerRef.value) return;
+        
+        try {
+            const offer = await peerRef.value.createOffer({ iceRestart: true });
+            await peerRef.value.setLocalDescription(offer);
+
+            webSocketRef?.value?.send(JSON.stringify({ 
+                offer: peerRef.value.localDescription,
+                iceRestart: true 
+            }));
+        } catch (error) {
+            console.error("ICE restart failed:", error);
+        }
+    };
+
+    const cleanupPeerConnection = ( ) => {
+        if (peerRef.value) {
+          peerRef.value.close();
+          peerRef.value = null;
+        }
+        partnerStream.value = null;
+    }
+
+    const handleWebsocketReconnect = () => {
+        clearInterval(pingInterval.value);
+        cleanupPeerConnection();
+        connectionStatus.value = 'reconnecting';
+
+        if (reconnectAttempts.value < MAX_RECONNECT_ATTEMPTS && isCallActive.value) {
+          const delay = RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttempts.value);
+          reconnectAttempts.value++;
+
+          setTimeout(() => {
+            console.log(`Reconnecting attempt ${reconnectAttempts.value}/${MAX_RECONNECT_ATTEMPTS}`);
+            setupConnection();
+            websocketHandler();
+          }, delay);
+        } else if (isCallActive.value) {
+          callError.value = "Connection lost. Please try again later.";
+          endCall('websocket_error');
+        }
+    }    
+
+    watchEffect(()=> {
+        console.log('?? connection status -- /', connectionStatus.value, '/')
+    })
+
+    const getConnectionStatus = () => {
+        return connectionStatus.value
+    }
+
+
+    onUnmounted(()=>endCall('unmounted'))
 
     return { 
         startCall,
         endCall,
         toggleAudio,
-        toggleVideo
+        toggleVideo,
+        getConnectionStatus
     }
 
     
