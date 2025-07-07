@@ -30,6 +30,7 @@ button {
     transition: all 0.3s ease-in-out;
     min-height: 40px;
     min-width: 40px;
+    gap: 10px;
 
     &:hover {
         cursor: pointer;
@@ -147,4 +148,41 @@ dialog {
             transform: rotate(10deg);
         }
     }
+}
+
+.media-choose-area {
+    width: 100%;
+    min-width: 300px;
+    border-radius: 15px;
+    border: 1px dashed var(--color-green);
+    color: var(--color-green);
+    background-color: #26b36c21;
+    padding: 20px;
+    height: fit-content;
+    min-height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+
+    &.drag-over {
+        border-style: dotted;
+        background-color: #26b36c09;
+        cursor: move;
+    }
+
+    &:-moz-drag-over {
+        border-style: dotted;
+    }
+}
+
+
+// INLINE STYLES
+
+.ml-auto {
+    margin-left: auto;
+}
+
+.mt-20 {
+    margin-top: 20px;
 }

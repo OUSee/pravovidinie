@@ -12,7 +12,7 @@ const pricing = 100
 const current_time = new Date();
 const mute = ref<Boolean>(false)
 const camera = ref<Boolean>(false)
-const enableCall = inject<any>('enableCall')
+const enableCall = inject<any>('enableCall');
 const { toggleAudio, toggleVideo, startCall, endCall } = useVideoChat();
 
 const hours = current_time.getHours().toString().padStart(2, '0');

@@ -7,12 +7,15 @@ import AttachFileIcon from '../Icons/AttachFileIcon.vue'
 // import { testMessages } from '../../types'
 import type { Message } from '../../types'
 import { useConnectChatWebSocket } from './useChatLogic'
+import SendFileModal from '../Modals/SendFile/SendFileModal.vue'
+
 
 const usertext = ref<string>('')
 const token = inject<Ref<string>>('token')
 const { sendMessage } = useConnectChatWebSocket()
 const messages = inject<Ref<Message[]>>('messages')
 const bottomRef = ref<HTMLElement | null>(null)
+const openAttach = ref<boolean>(false)
 
 const scrollBottom = () => {
     setTimeout(() => {
@@ -57,6 +60,10 @@ function handleEnter(event: KeyboardEvent) {
     }
 }
 
+const handleAttachFile = () => {
+    openAttach.value = !openAttach.value
+}
+
 </script>
 <template>
     <div class="videochat-chat">
@@ -66,7 +73,7 @@ function handleEnter(event: KeyboardEvent) {
             <div ref="bottomRef"></div>
         </div>
         <div class="user-bar">
-            <button class="button-icon" title="attach">
+            <button class="button-icon" title="attach" @click="handleAttachFile">
                 <AttachFileIcon color="#0A2463" />
             </button>
             <label for="user-input">
@@ -77,4 +84,5 @@ function handleEnter(event: KeyboardEvent) {
             </button>
         </div>
     </div>
+    <SendFileModal :is-open="openAttach" :onClose="handleAttachFile" />
 </template>
