@@ -69,15 +69,17 @@ const sendMessage = async (message: Message) => {
         ws.value.send(JSON.stringify(message));
     }
     console.log('new message: ', message)
+    console.log('stored', stored)
     stored.push(message);
     localStorage.setItem('messages', JSON.stringify(stored))
 
     if(user){
+        console.log(user.value)
         try{
             const response: any = await axios.post(API_ACESS_ROUTE + `/api/message`,
         {
             body: {
-                sender_id: JSON.parse(user)?.id,
+                sender_id: JSON.parse(user.value)?.id,
                 message_text: message.text,
                 room_id: roomID
             }

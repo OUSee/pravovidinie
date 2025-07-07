@@ -402,6 +402,7 @@ export const useVideoChat = () => {
 
     watchEffect(() => {
         if (callError.value !== null) {
+            connectionStatus.value = 'disconnected'
             console.log('ERR: ', callError.value)
             stopSound()
         }

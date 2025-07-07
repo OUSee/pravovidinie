@@ -30,7 +30,6 @@ const handleToggleAudio = (): void => {
 }
 
 const handleStartCall = (): void => {
-    console.log('click')
     if (enableCall.value === false) {
         enableCall.value = true;
         startCall?.();
