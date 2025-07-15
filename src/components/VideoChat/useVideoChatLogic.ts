@@ -1,6 +1,5 @@
 import { ref, type Ref, watchEffect, inject, onUnmounted, nextTick, watch } from 'vue'
 import axios from "axios";
-import callSound from '../../assets/skype-incoming.mp3'
 
 export const useVideoChatLogic = () => {
     // Refs
