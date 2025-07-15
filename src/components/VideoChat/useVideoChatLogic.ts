@@ -295,15 +295,15 @@ const createPeer = (): RTCPeerConnection => {
 
 
     // Sound control
-    const playSound = () => {
-        if (isPlaying.value) return
+    // const playSound = () => {
+    //     if (isPlaying.value) return
 
-        const audio = new Audio(callSound)
-        audio.loop = true
-        audio.play()
-        audioPlayer.value = audio
-        isPlaying.value = true
-    }
+    //     const audio = new Audio(callSound)
+    //     audio.loop = true
+    //     audio.play()
+    //     audioPlayer.value = audio
+    //     isPlaying.value = true
+    // }
 
     const stopSound = () => {
         audioPlayer.value?.pause()
@@ -533,7 +533,7 @@ const createPeer = (): RTCPeerConnection => {
         }
     })
 
-    watch(partnerVideo, (prevValue, nextValue) => {
+    watch(partnerVideo, (nextValue) => {
         if(nextValue && refVideo){
             refVideo.value.srcObject = partnerVideo.value
             refVideo.value.play()

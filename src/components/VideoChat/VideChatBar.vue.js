@@ -3,25 +3,33 @@ import EndVideoChatIcon from '../Icons/EndVideoChatIcon.vue';
 import MIcrophoneIcon from '../Icons/MIcrophoneIcon.vue';
 import CameraIcon from '../Icons/CameraIcon.vue';
 import { inject, ref } from 'vue';
+// import { useVideoChatLogic } from './useVideoChatLogic'
+import { useVideoChat } from './VideoChatHook';
 const time = '85 минут';
 const pricing = 100;
 const current_time = new Date();
 const mute = ref(false);
 const camera = ref(false);
 const enableCall = inject('enableCall');
-console.log(enableCall);
+const { toggleAudio, toggleVideo, startCall, endCall } = useVideoChat();
 const hours = current_time.getHours().toString().padStart(2, '0');
 const minutes = current_time.getMinutes().toString().padStart(2, '0');
 const handleToggleVideo = () => {
     camera.value = !camera.value;
+    toggleVideo?.();
 };
 const handleToggleAudio = () => {
     mute.value = !mute.value;
+    toggleAudio?.();
 };
 const handleStartCall = () => {
-    console.log('click');
     if (enableCall.value === false) {
         enableCall.value = true;
+        startCall?.();
+    }
+    else {
+        enableCall.value = false;
+        endCall?.('end by user');
     }
 };
 debugger; /* PartiallyEnd: #3632/scriptSetup.vue */

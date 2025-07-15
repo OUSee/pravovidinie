@@ -1,14 +1,20 @@
 import './VideoChat.scss';
 import VideoWindow from './VideoWindow.vue';
 import Chat from './Chat.vue';
-import VideoChatLogic from './VideoChatLogic.vue';
 import { ref, provide } from 'vue';
+import {} from '../../types';
 const refVideo = ref(null);
 const refUserVideo = ref(null);
+const webSocketRef = ref(null);
 const enableCall = ref(false);
+const messages = ref([]);
+const isConnecting = ref(false);
 provide('refVideo', refVideo);
 provide('refUserVideo', refUserVideo);
 provide('enableCall', enableCall);
+provide('messages', messages);
+provide('webSocketRef', webSocketRef);
+provide('isConnecting', isConnecting);
 debugger; /* PartiallyEnd: #3632/scriptSetup.vue */
 const __VLS_ctx = {};
 let __VLS_components;
@@ -24,10 +30,6 @@ const __VLS_1 = __VLS_0({}, ...__VLS_functionalComponentArgsRest(__VLS_0));
 // @ts-ignore
 const __VLS_3 = __VLS_asFunctionalComponent(Chat, new Chat({}));
 const __VLS_4 = __VLS_3({}, ...__VLS_functionalComponentArgsRest(__VLS_3));
-/** @type {[typeof VideoChatLogic, ]} */ ;
-// @ts-ignore
-const __VLS_6 = __VLS_asFunctionalComponent(VideoChatLogic, new VideoChatLogic({}));
-const __VLS_7 = __VLS_6({}, ...__VLS_functionalComponentArgsRest(__VLS_6));
 /** @type {__VLS_StyleScopedClasses['videochat']} */ ;
 var __VLS_dollars;
 const __VLS_self = (await import('vue')).defineComponent({
@@ -35,7 +37,6 @@ const __VLS_self = (await import('vue')).defineComponent({
         return {
             VideoWindow: VideoWindow,
             Chat: Chat,
-            VideoChatLogic: VideoChatLogic,
         };
     },
 });

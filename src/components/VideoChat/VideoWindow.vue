@@ -2,7 +2,7 @@
 import './VideoChat.scss'
 import VideoChatBar from './VideChatBar.vue'
 import DotSpinner from '../Loaders/DotSpinner.vue'
-import { inject, watch, type Ref } from 'vue'
+import { inject, type Ref } from 'vue'
 // import VideoChatLogic_deprecated from './VideoChatLogic_deprecated.vue';
 
 const refVideo = inject<any>('refVideo');

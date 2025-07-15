@@ -408,7 +408,7 @@ export const useVideoChat = () => {
         }
     })
 
-    watch(partnerStream, (value, prevValue) => {
+    watch(partnerStream, (value) => {
         if(refVideo){
             console.log('new partner stream =', value)
             refVideo.value.srcObject = value;

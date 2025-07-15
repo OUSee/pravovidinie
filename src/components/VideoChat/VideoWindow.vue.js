@@ -1,47 +1,11 @@
 import './VideoChat.scss';
 import VideoChatBar from './VideChatBar.vue';
-import DotSpinner from '../loaders/DotSpinner.vue';
-import { inject, watchEffect, ref } from 'vue';
-const refVideoStream = inject('refVideo');
-const refUserVideoStream = inject('refUserVideo');
-const yourVideo = ref(null);
-const partnerVideo = ref(null);
-const handleVideoStream = () => {
-    if (yourVideo.value !== null && refUserVideoStream.value) {
-        console.log('Setting srcObject for yourVideo');
-        refUserVideoStream.getTracks().forEach((track) => {
-            console.log(`Track ${track.kind} enabled:`, track.enabled);
-            track.enabled = true;
-        });
-        yourVideo.value.muted = true;
-        yourVideo.value.srcObject = refUserVideoStream.value;
-    }
-};
-watchEffect(() => {
-    console.log(refVideoStream.value);
-    console.log(refUserVideoStream.value);
-});
-watchEffect(() => {
-    if (refVideoStream.value !== null && refVideoStream.value !== undefined && partnerVideo.value !== null) {
-        partnerVideo.value.srcObject = refVideoStream.value;
-    }
-});
-watchEffect(() => {
-    handleVideoStream();
-    if (yourVideo.value !== null && !refUserVideoStream.value) {
-        const observer = new MutationObserver(() => {
-            if (refUserVideoStream.value) {
-                handleVideoStream();
-                observer.disconnect();
-            }
-        });
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-        return () => observer.disconnect();
-    }
-});
+import DotSpinner from '../Loaders/DotSpinner.vue';
+import { inject, watch } from 'vue';
+// import VideoChatLogic_deprecated from './VideoChatLogic_deprecated.vue';
+const refVideo = inject('refVideo');
+const refUserVideo = inject('refUserVideo');
+const isConnecting = inject('isConnecting');
 debugger; /* PartiallyEnd: #3632/scriptSetup.vue */
 const __VLS_ctx = {};
 let __VLS_components;
@@ -53,11 +17,11 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
     ...{ class: "main-window" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.video, __VLS_intrinsicElements.video)({
-    ref: "partnerVideo",
+    ref: "refVideo",
     src: "",
 });
-/** @type {typeof __VLS_ctx.partnerVideo} */ ;
-if (__VLS_ctx.refVideoStream === null || __VLS_ctx.refVideoStream === undefined) {
+/** @type {typeof __VLS_ctx.refVideo} */ ;
+if (__VLS_ctx.isConnecting) {
     /** @type {[typeof DotSpinner, ]} */ ;
     // @ts-ignore
     const __VLS_0 = __VLS_asFunctionalComponent(DotSpinner, new DotSpinner({}));
@@ -67,11 +31,11 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
     ...{ class: "mirror" },
 });
 __VLS_asFunctionalElement(__VLS_intrinsicElements.video, __VLS_intrinsicElements.video)({
-    ref: "yourVideo",
+    ref: "refUserVideo",
     src: "",
 });
-/** @type {typeof __VLS_ctx.yourVideo} */ ;
-if (__VLS_ctx.refUserVideoStream === null || __VLS_ctx.refUserVideoStream === undefined) {
+/** @type {typeof __VLS_ctx.refUserVideo} */ ;
+if (__VLS_ctx.isConnecting) {
     /** @type {[typeof DotSpinner, ]} */ ;
     // @ts-ignore
     const __VLS_3 = __VLS_asFunctionalComponent(DotSpinner, new DotSpinner({}));
@@ -94,10 +58,9 @@ const __VLS_self = (await import('vue')).defineComponent({
         return {
             VideoChatBar: VideoChatBar,
             DotSpinner: DotSpinner,
-            refVideoStream: refVideoStream,
-            refUserVideoStream: refUserVideoStream,
-            yourVideo: yourVideo,
-            partnerVideo: partnerVideo,
+            refVideo: refVideo,
+            refUserVideo: refUserVideo,
+            isConnecting: isConnecting,
         };
     },
 });

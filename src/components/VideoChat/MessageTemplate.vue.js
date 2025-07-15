@@ -1,10 +1,12 @@
+import { inject } from 'vue';
 import './VideoChat.scss';
 const __VLS_props = defineProps({
     text: String,
-    timestamp: String,
+    timestamp: String || undefined,
     seen: Boolean || undefined,
     from: String
 });
+const token = inject('token');
 function formatTimestamp(timestamp) {
     if (!timestamp) {
         return { date: '', time: '' };
@@ -33,8 +35,12 @@ let __VLS_components;
 let __VLS_directives;
 __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({
     ...{ class: "message" },
-    ...{ class: (__VLS_ctx.from) },
+    ...{ class: ({ user2: __VLS_ctx.from === __VLS_ctx.token }) },
 });
+__VLS_asFunctionalElement(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
+    ...{ class: "timestamp" },
+});
+(__VLS_ctx.from);
 __VLS_asFunctionalElement(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
     ...{ class: "message-text" },
 });
@@ -48,6 +54,8 @@ __VLS_asFunctionalElement(__VLS_intrinsicElements.div, __VLS_intrinsicElements.d
     ...{ class: (__VLS_ctx.seen ? 'active' : '') },
 });
 /** @type {__VLS_StyleScopedClasses['message']} */ ;
+/** @type {__VLS_StyleScopedClasses['user2']} */ ;
+/** @type {__VLS_StyleScopedClasses['timestamp']} */ ;
 /** @type {__VLS_StyleScopedClasses['message-text']} */ ;
 /** @type {__VLS_StyleScopedClasses['timestamp']} */ ;
 /** @type {__VLS_StyleScopedClasses['read-mark']} */ ;
@@ -55,12 +63,13 @@ var __VLS_dollars;
 const __VLS_self = (await import('vue')).defineComponent({
     setup() {
         return {
+            token: token,
             formatTimestamp: formatTimestamp,
         };
     },
     props: {
         text: String,
-        timestamp: String,
+        timestamp: String || undefined,
         seen: Boolean || undefined,
         from: String
     },
@@ -71,7 +80,7 @@ export default (await import('vue')).defineComponent({
     },
     props: {
         text: String,
-        timestamp: String,
+        timestamp: String || undefined,
         seen: Boolean || undefined,
         from: String
     },
