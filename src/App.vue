@@ -28,4 +28,5 @@ provide('user', user)
   <Header />
   <VideoChat />
   <Authentification />
+
 </template>

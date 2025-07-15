@@ -81,6 +81,7 @@ const handleSendOffer = (e: any) => {
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData)
     console.log(data)
+    // send offer
 }
 
 
@@ -111,7 +112,7 @@ console.log(partnerRef)
             </div>
             <form @submit="handleSendOffer" class="chat-dialogue-body" :class="{ active: openDialogue !== false }">
                 <label for="offer-aim" class="h2">Что нужно сделать?</label>
-                <textarea name="offer-aim" id="offer-aim"></textarea>
+                <textarea name="offer-aim" id="offer-aim" placeholder="Опишите задачу"></textarea>
                 <div class="d-flex align-center justify-sb">
                     <h2 class="m-none">Прикрепить документы</h2>
                     <button class="button-icon" title="attach" @click="handleAttachFile">
