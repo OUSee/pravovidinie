@@ -50,6 +50,20 @@ button {
         background-color: rgba(0, 0, 0, 0.15);
         border-radius: 25px;
     }
+
+    &.red {
+        &:hover {
+            background-color: rgba(255, 0, 0, 0.2);
+            ;
+        }
+
+    }
+
+    &.green {
+        &:hover {
+            background-color: #26b36c25;
+        }
+    }
 }
 
 .button {
@@ -59,6 +73,19 @@ button {
         padding: 0px;
         height: 40px;
         width: 40px;
+    }
+
+    &.red {
+        &:hover {
+            background-color: rgba(255, 0, 0, 0.2);
+        }
+
+    }
+
+    &.green {
+        &:hover {
+            background-color: #26b36c25;
+        }
     }
 }
 
@@ -93,6 +120,10 @@ dialog {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+
+        .modal-header {
+            margin-top: 30px;
+        }
 
         form {
             display: flex;
@@ -195,7 +226,6 @@ dialog {
 textarea {
     width: 100%;
     height: fit-content;
-    min-height: 68px;
     border: none;
     border-radius: 10px;
     resize: none;
@@ -233,10 +263,7 @@ input[type=date] {
     &:focus-within,
     &:focus-visible {
         border: 1px solid white;
-    }
-
-    &::after {
-        background-color: transparent;
+        outline: none;
     }
 
     &::-webkit-calendar-picker-indicator {
@@ -246,6 +273,32 @@ input[type=date] {
     }
 }
 
+
+input[type=number] {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: inherit;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    cursor: text;
+
+    &::placeholder {
+        color: inherit;
+    }
+
+    &:focus-within,
+    &:focus-visible {
+        border: 1px solid white;
+        outline: none;
+    }
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+}
 
 // INLINE STYLES
 
@@ -278,5 +331,17 @@ input[type=date] {
 .justify {
     &-sb {
         justify-content: space-between;
+    }
+}
+
+.flex {
+    &-fill {
+        flex: 1 1 0;
+    }
+}
+
+.gap {
+    &-10 {
+        gap: 10px;
     }
 }

@@ -10,6 +10,7 @@ import { type Message } from '../../types'
 import { useConnectChatWebSocket } from './useChatLogic'
 import SendFileModal from '../Modals/SendFile/SendFileModal.vue'
 import DialogueButton from '../Butons/DialogueButton.vue'
+import AcceptOffer from '../Modals/AcceptOffer/AcceptOffer.vue'
 
 
 const usertext = ref<string>('')
@@ -28,6 +29,9 @@ const today = new Date().toISOString().split('T')[0];
 const maxDate = new Date();
 maxDate.setDate(maxDate.getDate() + 360); // через 30 дней
 const maxDateString = maxDate.toISOString().split('T')[0];
+const req_idRef = ref('123')
+const details = ref({})
+const offerOpen = ref(false)
 
 const scrollBottom = () => {
     setTimeout(() => {
@@ -78,17 +82,35 @@ const handleOffer = () => {
 
 const handleSendOffer = (e: any) => {
     e.preventDefault()
+    e.stopPropagation()
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData)
     console.log(data)
+
+    details.value = { details: data.offerAim, deadline: data.offerDate, price: data.offerPrice }
+    handleOpenOffer()
+    openDialogue.value = false
     // send offer
 }
 
 
-const handleAttachFile = () => {
-    openAttach.value = !openAttach.value
+const handleAttachFile = (e: any) => {
+    e?.stopPropagation()
+    e?.preventDefault()
+    openAttach.value = true
 }
-console.log(partnerRef)
+
+const closeAttach = () => {
+    openAttach.value = false
+}
+
+const handleOpenOffer = () => {
+    offerOpen.value = true
+}
+
+const handleCloseOffer = () => {
+    offerOpen.value = false
+}
 
 
 </script>
@@ -110,9 +132,11 @@ console.log(partnerRef)
                     </div>
                 </div>
             </div>
-            <form @submit="handleSendOffer" class="chat-dialogue-body" :class="{ active: openDialogue !== false }">
-                <label for="offer-aim" class="h2">Что нужно сделать?</label>
-                <textarea name="offer-aim" id="offer-aim" placeholder="Опишите задачу"></textarea>
+            <form @submit="handleSendOffer"
+                @keypress="(e) => { console.log(e.target); e.key === 'Enter' ? handleSendOffer : null }"
+                class="chat-dialogue-body" :class="{ active: openDialogue !== false }">
+                <label for="offerAim" class="h2">Что нужно сделать?</label>
+                <textarea name="offerAim" id="offerAim" placeholder="Опишите задачу" required></textarea>
                 <div class="d-flex align-center justify-sb">
                     <h2 class="m-none">Прикрепить документы</h2>
                     <button class="button-icon" title="attach" @click="handleAttachFile">
@@ -120,8 +144,10 @@ console.log(partnerRef)
                     </button>
                 </div>
                 <div class="offer-files" v-if="offerFiles.length > 0"></div>
-                <label for="offer-date" class="h2">К какому времени?</label>
-                <input type="date" name="offer-date" id="offer-date" :max="maxDateString" :min="today">
+                <label for="offerDate" class="h2">К какому времени?</label>
+                <input type="date" name="offerDate" id="offerDate" :max="maxDateString" :min="today" required>
+                <label for="offerPrice">Предложите цену</label>
+                <input type="number" name="offerPrice" id="offerPrice" placeholder="0" required>
                 <button type="submit">
                     Отправить заявку
                 </button>
@@ -144,5 +170,6 @@ console.log(partnerRef)
             </button>
         </div>
     </div>
-    <SendFileModal :is-open="openAttach" :onClose="handleAttachFile" />
+    <SendFileModal :is-open="openAttach" :onClose="closeAttach" />
+    <AcceptOffer :req_id="req_idRef" :details="details" :onClose="handleCloseOffer" :is_open="offerOpen"></AcceptOffer>
 </template>

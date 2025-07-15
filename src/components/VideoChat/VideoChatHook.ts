@@ -1,6 +1,7 @@
 import { ref, type Ref, watchEffect, inject, watch, onUnmounted } from 'vue'
 import axios from "axios";
 import callSound from '../../assets/skype-incoming.mp3'
+import { Timer } from '../../types';
 
 
 export const useVideoChat = () => {
@@ -36,7 +37,11 @@ export const useVideoChat = () => {
     const iceRestartTimer = ref<any>(null);
     const reconnectTimer = ref<any>(null)
     const connectionStatus = ref<'connected' | 'connecting' | 'reconnecting' | 'disconnected'>('disconnected')
-
+    
+    const timer = ref(new Timer((elapsed) => {
+      console.log(`Прошло: ${Math.floor(elapsed / 1000)} секунд`);
+    }))
+    
     const ICE_SERVERS = [
         {
             urls: "stun:stun.relay.metered.ca:80",
@@ -295,6 +300,7 @@ export const useVideoChat = () => {
                         JSON.stringify({ type: "video_status", status: videoEnabled })
                     );
                     connectionStatus.value = 'connected'
+                    timer.value.start()
                 }
                 else(
                     console.error('error processing answer no peer connection')
@@ -303,11 +309,13 @@ export const useVideoChat = () => {
                 try {
                     await peerRef && peerRef.value && peerRef.value.addIceCandidate(message.iceCandidate);
                 } catch (err) {
+                    timer.value.pause()
                     console.error("Error Receiving ICE Candidate", err);
                 }        
             } else if (message.join) {
                 callUser()
             } else if (message.type === "call_end" || message.type === "call_error"){
+                timer.value.pause()
                 callError.value = message.message
             }
         }
@@ -344,7 +352,7 @@ export const useVideoChat = () => {
                 const {token} = JSON.parse(user)
             
             // http://api.xn--80aeaifasc8bfim.xn--p1ai/api/create
-            const response = await axios.post(API_CREATE_ROOM + `/create`,
+            const response = await axios.post('http://176.123.173.10:8091/api/ws' + `/create`,
                 { profile: 'test' },
                 { headers: { Authorization: `Bearer ${token}` } }
             )
@@ -403,6 +411,7 @@ export const useVideoChat = () => {
     watchEffect(() => {
         if (callError.value !== null) {
             connectionStatus.value = 'disconnected'
+            timer.value.stop()
             console.log('ERR: ', callError.value)
             stopSound()
         }
@@ -440,6 +449,7 @@ export const useVideoChat = () => {
         clearTimeout(iceRestartTimer.value);
         clearTimeout(reconnectTimer.value);
         connectionStatus.value = 'disconnected';
+        timer.value.stop()
 
         if (peerRef.value) {
           peerRef.value.close();
@@ -533,6 +543,7 @@ export const useVideoChat = () => {
         endCall,
         toggleAudio,
         toggleVideo,
-        getConnectionStatus
+        getConnectionStatus,
+        timer: timer
     } 
 }

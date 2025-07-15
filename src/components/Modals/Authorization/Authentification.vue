@@ -46,8 +46,9 @@ const fetchApi = async () => {
                 console.log('resp message', response.message)
             }
         }
+
         loading.value = false
-        modal.value = false
+        location.reload()
     } catch (err) {
         console.error('ERR: ', err)
         loading.value = false

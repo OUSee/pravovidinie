@@ -7,13 +7,13 @@ import { inject, ref } from 'vue'
 // import { useVideoChatLogic } from './useVideoChatLogic'
 import { useVideoChat } from './VideoChatHook'
 
-const time = '85 минут'
 const pricing = 100
 const current_time = new Date();
 const mute = ref<Boolean>(false)
 const camera = ref<Boolean>(false)
 const enableCall = inject<any>('enableCall');
-const { toggleAudio, toggleVideo, startCall, endCall } = useVideoChat();
+const VIDEOCHAT = useVideoChat()
+const { toggleAudio, toggleVideo, startCall, endCall, timer } = useVideoChat();
 
 const hours = current_time.getHours().toString().padStart(2, '0');
 const minutes = current_time.getMinutes().toString().padStart(2, '0');
@@ -40,6 +40,8 @@ const handleStartCall = (): void => {
     }
 }
 
+console.log(typeof timer, VIDEOCHAT)
+
 </script>
 
 <template>
@@ -54,7 +56,7 @@ const handleStartCall = (): void => {
         </div>
         <div class="progress">
             <p>
-                {{ time }} ({{ pricing }} ₽/мин)
+                {{ timer.getElapsed() ?? 0 }} минут ({{ pricing }} ₽/мин)
             </p>
             <p class="time">
                 {{ hours }}:{{ minutes }}

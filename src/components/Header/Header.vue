@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import LogOutButton from '../Icons/LogOutButton.vue'
 import './Header.scss'
 const user = localStorage.getItem('user') ?? '{}'
-
 const { first_name = '', last_name = '', balance = 0, user_type = 'client' } = JSON.parse(user)
+const userRef = ref({ first_name: first_name, last_name: last_name, balance: balance, user_type: user_type })
 
 
 const handleNumberToRanges = (number: number): string => {
@@ -17,6 +18,7 @@ const handleLogOut = () => {
     localStorage.removeItem('user')
     location.reload()
 }
+
 </script>
 
 <template>
@@ -37,10 +39,10 @@ const handleLogOut = () => {
                 {{ handleNumberToRanges(balance) }} ₽
             </button>
             <div class="lk-profile">
-                <div class="img-wrapper" :class="{ lawyer: user_type === 'lawyer' }">
+                <div class="img-wrapper" :class="{ lawyer: userRef.user_type === 'lawyer' }">
                 </div>
                 <p>
-                    {{ first_name }} {{ last_name }}
+                    {{ userRef.first_name }} {{ userRef.last_name }}
                 </p>
             </div>
             <button class="button-icon" @click.prevent="handleLogOut">
