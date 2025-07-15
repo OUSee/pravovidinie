@@ -69,13 +69,13 @@ export const useVideoChat = () => {
     ]
 
     const playSound = () => {
-        if (isPlaying.value) return
+        // if (isPlaying.value) return
 
-        const audio = new Audio(callSound)
-        audio.loop = true
-        audio.play()
-        audioPlayer.value = audio
-        isPlaying.value = true
+        // const audio = new Audio(callSound)
+        // audio.loop = true
+        // audio.play()
+        // audioPlayer.value = audio
+        // isPlaying.value = true
     }
 
     const stopSound = () => {
@@ -155,6 +155,8 @@ export const useVideoChat = () => {
             console.error("remote description isn't set cause: ", e)
         })
 
+        console.log('offer handling')
+
         if (userStream.value) {
             // const videoTrack = userStream.value.getVideoTracks()[0];
             // const audioTrack = userStream.value.getAudioTracks()[0];
@@ -177,6 +179,7 @@ export const useVideoChat = () => {
         webSocketRef && webSocketRef.value &&  webSocketRef.value.send(
             JSON.stringify({ answer: peerRef.value.localDescription })
         );
+        console.log('end handling', answer)
         stopSound()
     }
 
@@ -223,7 +226,8 @@ export const useVideoChat = () => {
         if(webSocketRef && !webSocketRef.value && roomID){
             try{
                 connectionStatus.value = 'connecting'
-                webSocketRef.value = new WebSocket(API_ACESS_ROUTE_WS + `/join?roomID=${roomID.value}&token=${token?.value}`)
+                // webSocketRef.value = new WebSocket(API_ACESS_ROUTE_WS + `/join?roomID=${roomID.value}&token=${token?.value}`)
+                webSocketRef.value = new WebSocket('ws://176.123.173.10:8091/api/ws/join?roomID=123e4567-e89b-12d3-a456-426614174000&token=100-token')
                 // - // - Instead of:
                 // `/join?token=${token}`
                 // - // - Use:
@@ -341,37 +345,57 @@ export const useVideoChat = () => {
         websocketHandler();
     }
 
-    const createRoom = async () => {
-        try {
-            const user = localStorage.getItem('user')
-            const room = localStorage.getItem('room')
-            if(room && roomID){
-                roomID.value = room
-            }
-            else if(user){
-                const {token} = JSON.parse(user)
+    // const createRoom = async () => {
+    //     try {
+    //         const user = localStorage.getItem('user')
+    //         const room = localStorage.getItem('room')
+    //         if(room && roomID){
+    //             roomID.value = room
+    //         }
+    //         else if(user){
+    //             const {token} = JSON.parse(user)
             
-            // http://api.xn--80aeaifasc8bfim.xn--p1ai/api/create
-            const response = await axios.post(API_CREATE_ROOM + `/create`,
-                { profile: 'test' },
-                { headers: { Authorization: `Bearer ${token}` } }
-            )
+    //         // http://api.xn--80aeaifasc8bfim.xn--p1ai/api/create
+    //         const response = await axios.post(API_CREATE_ROOM + `/create`,
+    //             { profile: 'test' },
+    //             // { headers: { Authorization: `Bearer ${token}` } }
+    //             { headers: { Authorization: `Bearer ${'100-token'}` } }
+    //         )
 
-            if (roomID && response.data.room_id) {
-                roomID.value = response.data.room_id
-                localStorage.setItem('room', roomID.value)
-                isConnecting ? isConnecting.value = true : null;
-            }
-            }
-            else{
-                console.error('failed to get token')
-            }
-            initCall()
-        } catch (error) {
-            console.error("Room creation error:", error)
-            callError.value = "Failed to create room"
-            if(enableCall){enableCall.value = false;}
+    //         console.log(`=> resp: ${response}`, response);
+    //         if (roomID && response.data.room_id) {
+    //             roomID.value = response.data.room_id
+    //             localStorage.setItem('room', roomID.value)
+    //             isConnecting ? isConnecting.value = true : null;
+    //         }
+    //         }
+    //         else{
+    //             console.error('failed to get token')
+    //         }
+    //         initCall()
+    //     } catch (error) {
+    //         console.error("Room creation error:", error)
+    //         callError.value = "Failed to create room"
+    //         if(enableCall){enableCall.value = false;}
+    //     }
+    // }
+
+    // hardcode get room
+
+    const createRoom = async () => {
+        const response = await axios.post(API_CREATE_ROOM + `/create`,
+                { profile: 'test' },
+                // { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { Authorization: `Bearer ${'100-token'}` } }
+            )
+        console.log(`=> resp: ${response}`, response);
+        if (roomID && response.data.room_id) {
+            roomID.value = '123e4567-e89b-12d3-a456-426614174000'
+            localStorage.setItem('room', roomID.value)
+            isConnecting ? isConnecting.value = true : null;
         }
+            initCall()
+
     }
 
     // обзервер для инициализации если вдруг элемент видео еще не существует
@@ -410,7 +434,7 @@ export const useVideoChat = () => {
 
     watchEffect(() => {
         if (callError.value !== null) {
-            connectionStatus.value = 'disconnected'
+            // connectionStatus.value = 'disconnected'
             timer.value.stop()
             console.log('ERR: ', callError.value)
             stopSound()
