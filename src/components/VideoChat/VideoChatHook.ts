@@ -352,7 +352,7 @@ export const useVideoChat = () => {
                 const {token} = JSON.parse(user)
             
             // http://api.xn--80aeaifasc8bfim.xn--p1ai/api/create
-            const response = await axios.post('http://176.123.173.10:8091/api/ws' + `/create`,
+            const response = await axios.post(API_CREATE_ROOM + `/create`,
                 { profile: 'test' },
                 { headers: { Authorization: `Bearer ${token}` } }
             )
