@@ -57,6 +57,61 @@
                 }
             }
         }
+
+        .chat-dialogue {
+            color: white;
+
+            &-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background-color: var(--color-green);
+                padding: 0 10px;
+            }
+
+            &-body {
+                width: 100%;
+                height: fit-content;
+                transition: all 0.3s ease-in-out;
+                opacity: 0;
+                pointer-events: none;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                padding: 0;
+                transform: scaleY(0);
+                transform-origin: top;
+                padding: 0 10px;
+
+                &.active {
+                    transform: scaleY(1);
+                    opacity: 1;
+                    pointer-events: all;
+                    height: fit-content;
+                    padding-bottom: 10px;
+                    background-color: var(--color-green);
+                }
+            }
+
+            .profile {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 8px;
+
+                &>.img-wrapper {
+                    width: 33px;
+                    height: 33px;
+                    background-color: var(--color-green-dark);
+                    border-radius: 50%;
+
+                    &.lawyer {
+                        background-color: var(--color-blue-dark);
+                    }
+                }
+
+            }
+        }
     }
 
     &-window {

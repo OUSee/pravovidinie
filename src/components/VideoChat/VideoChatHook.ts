@@ -224,6 +224,8 @@ export const useVideoChat = () => {
                 // - // - Use:
                 // const ws = new WebSocket(url);
                 // ws.onopen = () => ws.send(JSON.stringify({ token: token.value }));
+                // const user = localStorage.getItem('user')
+                // ws.onopen = () => ws.send(JSON.stringify({user: user}))
             }catch(err){
                 console.error('error setting websocket', err)
             }
@@ -351,8 +353,6 @@ export const useVideoChat = () => {
                 roomID.value = response.data.room_id
                 localStorage.setItem('room', roomID.value)
                 isConnecting ? isConnecting.value = true : null;
-
-                
             }
             }
             else{

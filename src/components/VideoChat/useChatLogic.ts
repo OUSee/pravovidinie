@@ -1,6 +1,6 @@
 
 import { ref, type Ref, onMounted, onBeforeUnmount, inject, watchEffect } from 'vue'
-import type { Message } from '../../types';
+import { UserType, type Message } from '../../types';
 import axios from 'axios';
 
 export const useConnectChatWebSocket =  () => {
@@ -11,8 +11,16 @@ const reconnectTokens = ref<number>(3);
 const localStory = localStorage.getItem('messages');
 const stored = localStory ? JSON.parse(localStory) : [];
 const roomID = inject<Ref<string>>('roomID');
-const user = inject<any>('user')
-const API_ACESS_ROUTE = inject<string>('API_ACESS_ROUTE')
+const user = inject<any>('user');
+const API_ACESS_ROUTE = inject<string>('API_ACESS_ROUTE');
+// const partnerRef = ref({})
+const partnerRef = {
+        user_type: UserType.client,
+        first_name: 'test',
+        last_name: 'test',
+    }
+
+
 
 const fetchStory = () => {
     // fetch
@@ -21,6 +29,8 @@ const fetchStory = () => {
         messages.value = stored;
     }
 }
+
+
 
 
 // logic
@@ -132,8 +142,11 @@ watchEffect(()=>{
     }
 })
 
+
+
 //lifesycle
 onMounted(()=>{
+    
     if(roomID?.value !== '' && roomID?.value){
          fetchStory();
          connectWebSocket();
@@ -144,7 +157,7 @@ onBeforeUnmount(() => {if(ws){ws.value?.close();}});
 
 
 //export 
-return {sendMessage}
+return {sendMessage, partnerRef}
 }
 
 
